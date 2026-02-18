@@ -1,0 +1,7 @@
+# Binaries
+messenger-backend
+*.exe
+
+# IDE
+.vscode/
+.idea/
