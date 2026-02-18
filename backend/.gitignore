@@ -5,6 +5,3 @@ messenger-backend
 # IDE
 .vscode/
 .idea/
-git push -u origin main
-error: src refspec main does not match any
-error: failed to push some refs to 'github.com:DmytroPI-dev/secure-messenger.git'
