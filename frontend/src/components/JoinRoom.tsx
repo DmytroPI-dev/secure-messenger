@@ -4,11 +4,12 @@ import { useState } from "react";
 import { hashPhrase } from "../utils/crypto";
 
 interface JoinRoomProps {
-  onJoinRoom: (roomId: string) => void;
+  onJoinRoom: (roomId: string, username: string) => void;
 }
 
 export const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
   const [passPhrase, setPassPhrase] = useState("");
+  const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const isPassPhraseValid = passPhrase.trim().length > 16;
   const [touched, setTouched] = useState(false);
@@ -22,6 +23,17 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
       height="100vh"
     >
       <Heading mb={6}>Join a Call Room</Heading>
+      <Field.Root mb={4}>
+        <Field.Label>Username (for debugging)</Field.Label>
+        <Input
+          placeholder="Enter your name"
+          onChange={(e) => setUsername(e.target.value)}
+          value={username}
+          mt={2}
+          mb={2}
+          size="lg"
+        />
+      </Field.Root>
       <Field.Root
         mb={4}
         onBlur={() => setTouched(true)}
@@ -41,13 +53,13 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
         </Field.ErrorText>
       </Field.Root>
       <Button
-        disabled={!isPassPhraseValid || isLoading}
+        disabled={!isPassPhraseValid || !username.trim() || isLoading}
         mt={4}
         onClick={async () => {
           setIsLoading(true);
           try {
             const hashed = await hashPhrase(passPhrase);
-            onJoinRoom(hashed);
+            onJoinRoom(hashed, username);
           } catch (error) {
             // Handle error
             console.error("Hashing failed:", error);
@@ -59,6 +71,9 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
         Submit passphrase
       </Button>
       {isLoading && <Spinner mt={4} />}
-    </Box>
+      
+      
+      </Box>
+      
   );
 };
