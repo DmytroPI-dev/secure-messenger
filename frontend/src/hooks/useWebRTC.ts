@@ -35,14 +35,12 @@ export function useWebRTC(
           urls: [
             `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=tcp`,
             `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=udp`,
-            `stun:stun.l.google.com:19302`, // Added free Google STUN for fallback debugging
           ],
           username: import.meta.env.VITE_TURN_USERNAME,
           credential: import.meta.env.VITE_TURN_PASSWORD,
         },
       ],
-      // THE FIX: Commented out to allow P2P if TURN is blocked by a firewall
-      // iceTransportPolicy: "relay",
+      iceTransportPolicy: "relay",
     });
 
     peerConnectionRef.current = peerConnection;
