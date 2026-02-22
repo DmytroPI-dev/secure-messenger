@@ -7,7 +7,8 @@ interface UseWebSocketReturn {
   error: string | null;
 }
 
-export function useWebSocket(url: string, roomId: string): UseWebSocketReturn {
+// Removed the unused `url` parameter
+export function useWebSocket(roomId: string): UseWebSocketReturn {
   const [messages, setMessages] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,14 +16,14 @@ export function useWebSocket(url: string, roomId: string): UseWebSocketReturn {
 
   useEffect(() => {
     console.log("🔌 Creating WebSocket connection for room:", roomId);
-    // Dynamically determine the protocol (WSS for HTTPS, WS for HTTP)
+
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    // Dynamically determine the host (supports both localhost and deployed environments)
     const host = window.location.host;
-    // Construct the URL.
     const wsUrl = `${protocol}//${host}/ws`;
+
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
+
     ws.onopen = () => {
       console.log("✅ WebSocket opened for room:", roomId);
       setIsConnected(true);
@@ -46,15 +47,21 @@ export function useWebSocket(url: string, roomId: string): UseWebSocketReturn {
 
     ws.onclose = () => {
       setIsConnected(false);
-      setError("WebSocket connection closed");
+      // Removed the error state here, normal closures shouldn't look like errors
       console.warn("WebSocket connection closed");
     };
 
     return () => {
       console.log("🔌 Closing WebSocket connection");
-      ws.close();
+      // Prevent the Strict Mode warning by checking readyState
+      if (
+        ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING
+      ) {
+        ws.close();
+      }
     };
-  }, [url, roomId]);
+  }, [roomId]);
 
   const sendMessage = useCallback((message: any) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
