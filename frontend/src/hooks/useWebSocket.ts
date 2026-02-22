@@ -15,7 +15,13 @@ export function useWebSocket(url: string, roomId: string): UseWebSocketReturn {
 
   useEffect(() => {
     console.log("🔌 Creating WebSocket connection for room:", roomId);
-    const ws = new WebSocket(url);
+    // Dynamically determine the protocol (WSS for HTTPS, WS for HTTP)
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    // Dynamically determine the host (supports both localhost and deployed environments)
+    const host = window.location.host;
+    // Construct the URL.
+    const wsUrl = `${protocol}//${host}/ws`;
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onopen = () => {
       console.log("✅ WebSocket opened for room:", roomId);
