@@ -71,6 +71,16 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				conn.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			existingRoom := roomManager.LockUnlockRoomExists(msg.RoomId)
+			role := "initiator"
+			if len(existingRoom.Connection) > 1 {
+				role = "receiver"
+			}
+			roleMsg := map[string]any{
+				"type": "role",
+				"data": map[string]string{"role": role},
+			}
+			conn.WriteJSON(roleMsg)
 		case "signal":
 			data, _ := json.Marshal(gin.H{"type": "signal", "data": msg.Data})
 			roomManager.Broadcast(msg.RoomId, data, conn)
