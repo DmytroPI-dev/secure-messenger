@@ -21,7 +21,7 @@ jobs:
         # We specify the working directory here
         working-directory: ./messenger/backend
         run: |
-          GOOS=linux GOARCH=amd64 go build -o ../../messenger-backend .
+          GOOS=linux GOARCH=amd64 go build -o messenger-backend .
 
       # --- FRONTEND BUILD (Node) ---
       - name: Build Frontend
