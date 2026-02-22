@@ -15,7 +15,7 @@ export function useWebRTC(
 ): UseWebRTCReturn {
   const processedMessagesRef = useRef<Set<string>>(new Set());
 
-  const [myRole, setMyRole] = useState<"initiator" | "receiver" | null>(null);
+  const [_, setMyRole] = useState<"initiator" | "receiver" | null>(null);
   // 1. ADD A REF for instant role access inside closures
   const myRoleRef = useRef<"initiator" | "receiver" | null>(null);
 
@@ -29,19 +29,35 @@ export function useWebRTC(
 
   useEffect(() => {
     const peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      iceServers: [
+        {
+          urls: [
+            `turn:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
+            `turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
+          ],
+          username: import.meta.env.VITE_TURN_USERNAME,
+          credential: import.meta.env.VITE_TURN_PASSWORD,
+        },
+      ],
+      iceTransportPolicy: "relay",
     });
     peerConnectionRef.current = peerConnection;
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        sendMessage({
-          type: "signal",
-          roomId: roomId,
-          data: { type: "ice-candidate", candidate: event.candidate },
-        });
-      }
-    };
+peerConnection.onicecandidate = (event) => {
+  if (event.candidate) {
+    console.log("📤 ICE Candidate:", {
+      type: event.candidate.type,
+      protocol: event.candidate.protocol,
+      address: event.candidate.address,
+      port: event.candidate.port,
+      relatedAddress: event.candidate.relatedAddress,
+    });
+    sendMessage({
+      type: "signal",
+      data: { type: "ice-candidate", candidate: event.candidate },
+    });
+  }
+};
 
     peerConnection.ontrack = (event) => {
       setRemoteStream(event.streams[0]);
