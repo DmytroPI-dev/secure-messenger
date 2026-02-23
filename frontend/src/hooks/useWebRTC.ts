@@ -33,8 +33,8 @@ export function useWebRTC(
       iceServers: [
         {
           urls: [
-            `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=tcp`,
-            `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=udp`,
+                `turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
+                // `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=udp`,
           ],
           username: import.meta.env.VITE_TURN_USERNAME,
           credential: import.meta.env.VITE_TURN_PASSWORD,
