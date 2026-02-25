@@ -7,20 +7,21 @@ type roomId = null | string;
 
 function App() {
   const [roomId, setRoomId] = useState<roomId>(null);
-  const [username, setUsername] = useState<string>("");
-
   if (roomId === null) {
     return (
       console.log("Room ID:", roomId),
-      <JoinRoom onJoinRoom={(hashedId, user) => {
-        setRoomId(hashedId);
-        setUsername(user);
-      }} />
+      (
+        <JoinRoom
+          onJoinRoom={(hashedId) => {
+            setRoomId(hashedId);
+          }}
+        />
+      )
     );
   } else {
     return (
       console.log("Call room ID:", roomId),
-      <CallRoom roomId={roomId} username={username} />
+      (<CallRoom roomId={roomId} />)
     );
   }
 }

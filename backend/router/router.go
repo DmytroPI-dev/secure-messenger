@@ -19,7 +19,8 @@ var roomManager = room.NewRoomManager()
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		origin := r.Header.Get("Origin")
+		return origin =="http://localhost:5173" || origin == "https://messenger.dmytro-dev.net"
 	},
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -86,6 +87,9 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			roomManager.Broadcast(msg.RoomId, data, conn)
 		case "chat":
 			data, _ := json.Marshal(gin.H{"type": "chat", "data": msg.Data})
+			roomManager.Broadcast(msg.RoomId, data, conn)
+		case "peer-status":
+			data, _ := json.Marshal(gin.H{"type": "peer-status", "data": msg.Data})
 			roomManager.Broadcast(msg.RoomId, data, conn)
 		default:
 			log.Printf("Unknown message type: %s", msg.Type)

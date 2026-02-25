@@ -6,6 +6,7 @@ interface UseWebRTCReturn {
   connectionState: RTCPeerConnectionState;
   startCall: () => Promise<void>;
   stopCall: () => void;
+  peerConnection: RTCPeerConnection | null;
 }
 
 export function useWebRTC(
@@ -16,8 +17,6 @@ export function useWebRTC(
   const myRoleRef = useRef<"initiator" | "receiver" | null>(null);
   const hasCreatedOfferRef = useRef(false);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
-
-  // THE FIX: An async lock and index tracker to prevent React from dropping messages
   const isProcessingRef = useRef(false);
   const messageIndexRef = useRef(0);
 
@@ -33,8 +32,7 @@ export function useWebRTC(
       iceServers: [
         {
           urls: [
-                `turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
-                // `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=udp`,
+            `turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
           ],
           username: import.meta.env.VITE_TURN_USERNAME,
           credential: import.meta.env.VITE_TURN_PASSWORD,
@@ -92,6 +90,8 @@ export function useWebRTC(
               video: true,
               audio: true,
             });
+            stream.getVideoTracks().forEach((track) => (track.enabled = false));
+            stream.getAudioTracks().forEach((track) => (track.enabled = false));
             setLocalStream(stream);
             stream.getTracks().forEach((track) => {
               peerConnectionRef.current?.addTrack(track, stream);
@@ -201,5 +201,12 @@ export function useWebRTC(
     setRemoteStream(null);
   };
 
-  return { localStream, remoteStream, connectionState, startCall, stopCall };
+  return {
+    localStream,
+    remoteStream,
+    connectionState,
+    startCall,
+    stopCall,
+    peerConnection: peerConnectionRef.current,
+  };
 }
