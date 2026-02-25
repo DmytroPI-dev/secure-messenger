@@ -27,7 +27,7 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
         onBlur={() => setTouched(true)}
         invalid={!isPassPhraseValid && touched}
       >
-        <Field.Label>Passphrase (more than 16 characters)</Field.Label>
+        <Field.Label>Passphrase (more than 12 characters)</Field.Label>
         <Input
           placeholder="Passphrase"
           onChange={(e) => setPassPhrase(e.target.value)}
