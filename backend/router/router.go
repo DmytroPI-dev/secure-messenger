@@ -7,6 +7,7 @@ import (
 	"log"
 	"messenger-backend/room"
 	"net/http"
+	"fmt"
 )
 
 type Message struct {
@@ -20,7 +21,7 @@ var roomManager = room.NewRoomManager()
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
-		return origin =="http://localhost:5173" || origin == "https://messenger.dmytro-dev.net"
+		return origin == "http://localhost:5173" || origin == "https://messenger.dmytro-dev.net"
 	},
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -65,17 +66,38 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		switch msg.Type {
 		case "join":
+			var joinData struct {
+				ClientId string `json:"clientId"`
+			}
+			err := json.Unmarshal(msg.Data, &joinData)
+			if err != nil {
+				log.Println(err)
+				conn.WriteJSON(gin.H{"error": "invalid join data"})
+				return
+			}
 			currentRoomId = msg.RoomId
-			err := roomManager.JoinRoom(msg.RoomId, conn)
+			var role string
+			existingRoom := roomManager.GetOrCreateRoom(msg.RoomId)
+			if existingRoom.InitiatorId == "" {
+				role = "initiator"
+				existingRoom.InitiatorId = joinData.ClientId
+			} else if existingRoom.InitiatorId == joinData.ClientId {
+				role = "initiator"
+			} else if existingRoom.InitiatorId != joinData.ClientId && existingRoom.ReceiverId == "" {
+				role = "receiver"
+				existingRoom.ReceiverId = joinData.ClientId
+			} else if existingRoom.ReceiverId == joinData.ClientId {
+				role = "receiver"
+			} else {
+				log.Printf("Room %s is full", msg.RoomId)
+				conn.WriteJSON(gin.H{"error": fmt.Sprintf("room %s is full", msg.RoomId)})
+				return
+			}
+			err = roomManager.JoinRoom(msg.RoomId, conn)
 			if err != nil {
 				log.Println(err)
 				conn.WriteJSON(gin.H{"error": err.Error()})
 				return
-			}
-			existingRoom := roomManager.LockUnlockRoomExists(msg.RoomId)
-			role := "initiator"
-			if len(existingRoom.Connection) > 1 {
-				role = "receiver"
 			}
 			roleMsg := map[string]any{
 				"type": "role",

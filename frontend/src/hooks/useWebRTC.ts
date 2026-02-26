@@ -31,9 +31,7 @@ export function useWebRTC(
     const peerConnection = new RTCPeerConnection({
       iceServers: [
         {
-          urls: [
-            `turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
-          ],
+          urls: [`turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`],
           username: import.meta.env.VITE_TURN_USERNAME,
           credential: import.meta.env.VITE_TURN_PASSWORD,
         },
@@ -64,12 +62,37 @@ export function useWebRTC(
         peerConnection.connectionState,
       );
       setConnectionState(peerConnection.connectionState);
+
+      // FAST RECOVERY TRIGGER
+      if (peerConnection.connectionState === "disconnected") {
+        console.warn(
+          "⚠️ Peer disconnected. Waiting 3 seconds before auto-recovering...",
+        );
+
+        // Give it 3 seconds to recover (e.g., switching from WiFi to 4G)
+        setTimeout(() => {
+          if (peerConnection.connectionState !== "connected") {
+            console.warn("💀 Connection dead. Reloading to resync keys...");
+            window.location.reload();
+          }
+        }, 3000);
+      }
+
+      // Fallback just in case
+      if (peerConnection.connectionState === "failed") {
+        window.location.reload();
+      }
     };
 
     return () => {
       peerConnection.close();
     };
   }, [roomId, sendMessage]);
+
+  const messagesRef = useRef(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   // 2. Process Messages Safely
   useEffect(() => {

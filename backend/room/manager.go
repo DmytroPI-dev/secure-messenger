@@ -2,16 +2,18 @@ package room
 
 import (
 	"fmt"
+	"github.com/gorilla/websocket"
 	"log"
 	"sync"
-	"github.com/gorilla/websocket"
 )
 
 // Room represents a chat room with a unique ID and a list of connections.
 type Room struct {
-	Id         string
-	Connection []*websocket.Conn
-	mutex      sync.Mutex
+	Id          string
+	Connection  []*websocket.Conn
+	mutex       sync.Mutex
+	InitiatorId string
+	ReceiverId  string
 }
 
 // RoomManager manages multiple rooms and their connections.
@@ -54,7 +56,7 @@ func (rm *RoomManager) JoinRoom(roomId string, conn *websocket.Conn) error {
 // LeaveRoom removes a connection from the specified room. If the room becomes empty after removing the connection, it deletes the room from the RoomManager.
 func (rm *RoomManager) LeaveRoom(roomId string, conn *websocket.Conn) {
 	// Lock the room manager to safely access the rooms map
-	room := rm.LockUnlockRoomExists(roomId)
+	room := rm.GetOrCreateRoom(roomId)
 	if room == nil {
 		return
 	}
@@ -79,7 +81,7 @@ func (rm *RoomManager) LeaveRoom(roomId string, conn *websocket.Conn) {
 
 // Broadcast sends a message to all connections in the specified room except the sender connection.
 func (rm *RoomManager) Broadcast(roomId string, message []byte, senderConn *websocket.Conn) {
-	room := rm.LockUnlockRoomExists(roomId)
+	room := rm.GetOrCreateRoom(roomId)
 	if room == nil {
 		return
 	}
@@ -94,13 +96,20 @@ func (rm *RoomManager) Broadcast(roomId string, message []byte, senderConn *webs
 	}
 }
 
-// LockUnlockRoomExists is a helper function that locks the room manager, checks if the room exists, and returns the room if it does. It also unlocks the room manager after checking.
-func (rm *RoomManager) LockUnlockRoomExists(roomId string) *Room {
+// GetOrCreateRoom locks the manager, fetches the room, or creates it if it doesn't exist.
+func (rm *RoomManager) GetOrCreateRoom(roomId string) *Room {
 	rm.mutex.Lock()
 	defer rm.mutex.Unlock()
-	room, exists := rm.Rooms[roomId]
+
+	r, exists := rm.Rooms[roomId]
 	if !exists {
-		return nil
+		// Create the new room instance safely
+		r = &Room{
+			Id: roomId,
+			// Initialize your connection slice/map depending on how you structured it
+			Connection: make([]*websocket.Conn, 0),
+		}
+		rm.Rooms[roomId] = r
 	}
-	return room
+	return r
 }
