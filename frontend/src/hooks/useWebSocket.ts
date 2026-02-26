@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 interface UseWebSocketReturn {
   sendMessage: (message: any) => void;
@@ -7,12 +8,23 @@ interface UseWebSocketReturn {
   error: string | null;
 }
 
-// Removed the unused `url` parameter
+// Helper function to keep ID persistent during a browser session
+const getOrCreateClientId = (roomId: string) => {
+  const key = `ghost-id-${roomId}`;
+  let id = sessionStorage.getItem(key);
+  if (!id) {
+    id = uuidv4();
+    sessionStorage.setItem(key, id);
+  }
+  return id;
+};
+
 export function useWebSocket(roomId: string): UseWebSocketReturn {
   const [messages, setMessages] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const clientId = useRef<string>(getOrCreateClientId(roomId));
 
   useEffect(() => {
     console.log("🔌 Creating WebSocket connection for room:", roomId);
@@ -28,7 +40,13 @@ export function useWebSocket(roomId: string): UseWebSocketReturn {
       console.log("✅ WebSocket opened for room:", roomId);
       setIsConnected(true);
       setError(null);
-      ws.send(JSON.stringify({ type: "join", roomId: roomId, data: null }));
+      ws.send(
+        JSON.stringify({
+          type: "join",
+          roomId: roomId,
+          data: { clientId: clientId.current },
+        }),
+      );
     };
 
     ws.onmessage = (event) => {
