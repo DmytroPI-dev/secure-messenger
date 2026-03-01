@@ -178,16 +178,17 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
 
   return isMobile ? (
     <Box
-      position="relative"
-      width="99vw"
-      height="95vh"
+      position="fixed" // 1. Locks container to the screen completely
+      top={0}
+      left={0}
+      width="100dvw"   // 2. Dynamic Viewport Width
+      height="100dvh"  // 3. Dynamic Viewport Height (ignores mobile address bars)
       bg="black"
+      zIndex={9999}    // Ensure it overlays your app completely
       overflow="hidden"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
+      style={{ touchAction: "none" }} // 4. PREVENTS the screen from being dragged/bounced with fingers
     >
-      {/* Remote video - full screen background */}
+      {/* Remote video - TRULY full screen */}
       <video
         ref={remoteVideoRef}
         autoPlay
@@ -200,16 +201,15 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
           height: "100%",
           objectFit: "cover",
           zIndex: 0,
-          borderRadius: "20px",
-          border: "2px solid rgba(255,255,255,0.2)",
           backgroundColor: "black",
+          // REMOVED border and borderRadius to make it edge-to-edge
         }}
       />
 
-      {/* Stats at top center - INSIDE remote video */}
+      {/* Stats at top center */}
       <Box
         position="absolute"
-        top="20px"
+        top="max(20px, env(safe-area-inset-top))" // Respects iOS notches
         left="50%"
         transform="translateX(-50%)"
         zIndex={2}
@@ -225,19 +225,19 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
         </HStack>
       </Box>
 
-      {/* Local video PiP - top right, INSIDE remote video */}
+      {/* Local video PiP - top right */}
       <Box
         position="absolute"
-        top="80px"
+        top="max(80px, env(safe-area-inset-top) + 60px)"
         right="20px"
         width="100px"
         height="140px"
-        borderRadius="lg"
+        borderRadius="xl" // Adjusted for a cleaner mobile look
         overflow="hidden"
         border="2px solid"
-        borderColor="whiteAlpha.300"
-        boxShadow="xl"
-        zIndex={1}
+        borderColor="whiteAlpha.400"
+        boxShadow="dark-lg"
+        zIndex={2} // Ensure it's above the remote video
       >
         <video
           ref={localVideoRef}
@@ -249,6 +249,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             height: "100%",
             objectFit: "cover",
             transform: "scaleX(-1)",
+            backgroundColor: "#2D3748", // Dark placeholder background
           }}
         />
         {videoMuted && (
@@ -258,19 +259,41 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             left="50%"
             transform="translate(-50%, -50%)"
             fontSize="3xl"
+            zIndex={3}
           >
             👤
           </Box>
         )}
       </Box>
 
-      {/* Control buttons at bottom - INSIDE remote video */}
+      {/* Remote status indicators */}
+      {(remoteStatus.audioMuted || remoteStatus.videoMuted) && (
+        <Box
+          position="absolute"
+          bottom="max(140px, env(safe-area-inset-bottom) + 120px)"
+          left="50%"
+          transform="translateX(-50%)"
+          zIndex={2}
+          bg="blackAlpha.700"
+          px={4}
+          py={2}
+          borderRadius="full"
+          backdropFilter="blur(10px)"
+        >
+          <HStack gap={3} fontSize="sm" color="white">
+            {remoteStatus.audioMuted && <Text>🔇 Peer Muted</Text>}
+            {remoteStatus.videoMuted && <Text>📵 Peer Video Off</Text>}
+          </HStack>
+        </Box>
+      )}
+
+      {/* Control buttons at bottom */}
       <Box
         position="absolute"
-        bottom="40px"
+        bottom="max(30px, env(safe-area-inset-bottom))" // Safe area for iOS swipe bar
         left="50%"
         transform="translateX(-50%)"
-        zIndex={2}
+        zIndex={3}
       >
         <HStack gap={6}>
           <IconButton
@@ -278,12 +301,12 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             onClick={toggleAudio}
             size="lg"
             rounded="full"
-            bg={audioMuted ? "red.500" : "whiteAlpha.300"}
-            color="white"
+            bg={audioMuted ? "white" : "whiteAlpha.300"}
+            color={audioMuted ? "black" : "white"}
             backdropFilter="blur(10px)"
-            _hover={{ bg: audioMuted ? "red.600" : "whiteAlpha.400" }}
+            _hover={{ bg: audioMuted ? "gray.200" : "whiteAlpha.400" }}
           >
-            {audioMuted ? <MdMicOff /> : <MdMic />}
+            {audioMuted ? <MdMicOff size="24px" /> : <MdMic size="24px" />}
           </IconButton>
 
           <IconButton
@@ -293,9 +316,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             rounded="full"
             bg="red.500"
             color="white"
-            width="70px"
-            height="70px"
-            fontSize="2xl"
+            width="72px"
+            height="72px"
+            fontSize="3xl"
+            boxShadow="0 4px 14px 0 rgba(229, 62, 62, 0.39)" // Nice glow effect
             _hover={{ bg: "red.600" }}
           >
             <MdCallEnd />
@@ -306,36 +330,15 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             onClick={toggleVideo}
             size="lg"
             rounded="full"
-            bg={videoMuted ? "red.500" : "whiteAlpha.300"}
-            color="white"
+            bg={videoMuted ? "white" : "whiteAlpha.300"}
+            color={videoMuted ? "black" : "white"}
             backdropFilter="blur(10px)"
-            _hover={{ bg: videoMuted ? "red.600" : "whiteAlpha.400" }}
+            _hover={{ bg: videoMuted ? "gray.200" : "whiteAlpha.400" }}
           >
-            {videoMuted ? <MdVideocamOff /> : <MdVideocam />}
+            {videoMuted ? <MdVideocamOff size="24px" /> : <MdVideocam size="24px" />}
           </IconButton>
         </HStack>
       </Box>
-
-      {/* Remote status indicators */}
-      {(remoteStatus.audioMuted || remoteStatus.videoMuted) && (
-        <Box
-          position="absolute"
-          bottom="130px"
-          left="50%"
-          transform="translateX(-50%)"
-          zIndex={2}
-          bg="blackAlpha.700"
-          px={3}
-          py={1}
-          borderRadius="full"
-          backdropFilter="blur(10px)"
-        >
-          <HStack gap={2} fontSize="xs" color="white">
-            {remoteStatus.audioMuted && <Text>🔇 Muted</Text>}
-            {remoteStatus.videoMuted && <Text>📵 Video off</Text>}
-          </HStack>
-        </Box>
-      )}
     </Box>
   ) : (
     // Desktop layout
