@@ -37,7 +37,7 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({ onJoinRoom }) => {
           size="lg"
         />
         <Field.ErrorText>
-          Passphrase must be more than 16 characters.
+          Passphrase must be more than 12 characters.
         </Field.ErrorText>
       </Field.Root>
       <Button

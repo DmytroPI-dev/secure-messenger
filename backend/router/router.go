@@ -7,7 +7,6 @@ import (
 	"log"
 	"messenger-backend/room"
 	"net/http"
-	"fmt"
 )
 
 type Message struct {
@@ -29,29 +28,27 @@ var upgrader = websocket.Upgrader{
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status": "ok",
-		})
-	})
-	router.GET("/ws", func(c *gin.Context) {
-		handleWebSocket(c.Writer, c.Request)
-	})
+	go roomManager.CleanupRooms() // Start the cleanup goroutine
+	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+	router.GET("/ws", func(c *gin.Context) { handleWebSocket(c.Writer, c.Request) })
 	return router
 }
 
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	var currentRoomId string
 
-	conn, err := upgrader.Upgrade(w, r, nil)
+	rawConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	conn := &room.SafeConnection{Conn: rawConn}
+
 	defer func() {
 		if currentRoomId != "" {
 			roomManager.LeaveRoom(currentRoomId, conn)
+			log.Printf("Client disconnected from room %s", currentRoomId)
 		}
 	}()
 
@@ -69,33 +66,15 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			var joinData struct {
 				ClientId string `json:"clientId"`
 			}
-			err := json.Unmarshal(msg.Data, &joinData)
-			if err != nil {
-				log.Println(err)
+			if err := json.Unmarshal(msg.Data, &joinData); err != nil {
 				conn.WriteJSON(gin.H{"error": "invalid join data"})
 				return
 			}
+
 			currentRoomId = msg.RoomId
-			var role string
-			existingRoom := roomManager.GetOrCreateRoom(msg.RoomId)
-			if existingRoom.InitiatorId == "" {
-				role = "initiator"
-				existingRoom.InitiatorId = joinData.ClientId
-			} else if existingRoom.InitiatorId == joinData.ClientId {
-				role = "initiator"
-			} else if existingRoom.InitiatorId != joinData.ClientId && existingRoom.ReceiverId == "" {
-				role = "receiver"
-				existingRoom.ReceiverId = joinData.ClientId
-			} else if existingRoom.ReceiverId == joinData.ClientId {
-				role = "receiver"
-			} else {
-				log.Printf("Room %s is full", msg.RoomId)
-				conn.WriteJSON(gin.H{"error": fmt.Sprintf("room %s is full", msg.RoomId)})
-				return
-			}
-			err = roomManager.JoinRoom(msg.RoomId, conn)
+			// JoinRoom handles creation, locking, AND role assignment
+			role, err := roomManager.JoinRoom(msg.RoomId, joinData.ClientId, conn)
 			if err != nil {
-				log.Println(err)
 				conn.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
@@ -113,6 +92,16 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		case "peer-status":
 			data, _ := json.Marshal(gin.H{"type": "peer-status", "data": msg.Data})
 			roomManager.Broadcast(msg.RoomId, data, conn)
+		case "end-call":
+			data, _ := json.Marshal(gin.H{"type": "call-ended"})
+			roomManager.Broadcast(msg.RoomId, data, conn)
+			// Remove this connection first to ensure the "call-ended" message is sent to the peer before the room is potentially deleted
+			roomManager.LeaveRoom(msg.RoomId, conn)
+			// Then permanently delete the room
+			roomManager.DeleteRoom(msg.RoomId)
+			currentRoomId = ""
+			log.Printf("Call ended in room %s", msg.RoomId)
+			return
 		default:
 			log.Printf("Unknown message type: %s", msg.Type)
 		}

@@ -16,6 +16,7 @@ export function useWebRTC(
 ): UseWebRTCReturn {
   const myRoleRef = useRef<"initiator" | "receiver" | null>(null);
   const hasCreatedOfferRef = useRef(false);
+  const hasReceivedOfferRef = useRef(false);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const isProcessingRef = useRef(false);
   const messageIndexRef = useRef(0);
@@ -101,9 +102,8 @@ export function useWebRTC(
       isProcessingRef.current = true;
 
       try {
-        // Process strictly in order using a while loop to prevent overlapping async calls
-        while (messageIndexRef.current < messages.length) {
-          const message = messages[messageIndexRef.current];
+        while (messageIndexRef.current < messagesRef.current.length) {
+          const message = messagesRef.current[messageIndexRef.current];
 
           if (message.type === "role") {
             const assignedRole = message.data.role;
@@ -122,6 +122,11 @@ export function useWebRTC(
 
             if (assignedRole === "initiator") {
               console.log("⏳ Initiator waiting for receiver...");
+              sendMessage({
+                type: "signal",
+                roomId: roomId,
+                data: { type: "initiator_arrived" },
+              });
             } else {
               console.log("👂 Receiver telling initiator they are ready!");
               sendMessage({
@@ -135,12 +140,35 @@ export function useWebRTC(
             message.data.type === "peer_ready"
           ) {
             if (myRoleRef.current === "initiator") {
-              await startCall();
+              if (hasCreatedOfferRef.current) {
+                console.warn("🔄 Receiver rebooted. Reloading to sync...");
+                window.location.reload();
+              } else {
+                await startCall();
+              }
+            }
+          } else if (
+            message.type === "signal" &&
+            message.data.type === "initiator_arrived"
+          ) {
+            if (myRoleRef.current === "receiver") {
+              if (hasReceivedOfferRef.current) {
+                console.warn("🔄 Initiator rebooted. Reloading to sync...");
+                window.location.reload();
+              } else {
+                console.log("📢 Initiator arrived. Resending peer_ready...");
+                sendMessage({
+                  type: "signal",
+                  roomId: roomId,
+                  data: { type: "peer_ready" },
+                });
+              }
             }
           } else if (
             message.type === "signal" &&
             message.data.type === "offer"
           ) {
+            hasReceivedOfferRef.current = true;
             await peerConnectionRef.current?.setRemoteDescription(
               new RTCSessionDescription(message.data.offer),
             );
@@ -173,12 +201,11 @@ export function useWebRTC(
             }
           }
 
-          messageIndexRef.current++; // Move to next message
+          messageIndexRef.current++;
         }
       } finally {
         isProcessingRef.current = false;
-        // If new messages arrived while we were processing, trigger loop again
-        if (messageIndexRef.current < messages.length) {
+        if (messageIndexRef.current < messagesRef.current.length) {
           processMessages();
         }
       }

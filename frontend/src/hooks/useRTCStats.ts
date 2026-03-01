@@ -12,7 +12,6 @@ export const useRTCStats = (peerConnection: RTCPeerConnection | null) => {
       string,
       {
         bytesReceived: number;
-        packetsLost: number;
         timestamp: number;
       }
     >(),
@@ -44,20 +43,8 @@ export const useRTCStats = (peerConnection: RTCPeerConnection | null) => {
 
           previousStatsRef.current.set(report.id, {
             bytesReceived: currentBytes,
-            packetsLost: report.packetsLost || 0,
             timestamp: currentTimestamp,
           });
-        }
-
-        // Packet loss calculation
-        if (report.type === "inbound-rtp" && report.kind === "video") {
-          const packetsLost = report.packetsLost || 0;
-          const packetsReceived = report.packetsReceived || 0;
-          const totalPackets = packetsLost + packetsReceived;
-          currentPacketLoss =
-            totalPackets > 0
-              ? Math.round((packetsLost / totalPackets) * 100)
-              : 0;
         }
 
         // RTT (Round Trip Time)
