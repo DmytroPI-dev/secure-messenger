@@ -9,6 +9,14 @@ function App() {
     return sessionStorage.getItem("activeRoom");
   });
 
+  const handleLeaveRoom = () => {
+    if (roomId) {
+      sessionStorage.removeItem(`ghost-id-${roomId}`); // ← Add this
+    }
+    sessionStorage.removeItem("activeRoom");
+    setRoomId(null);
+  };
+
   const handleJoinRoom = (hashedId: string) => {
     // 2. Save the hashed ID to sessionStorage BEFORE setting state
     sessionStorage.setItem("activeRoom", hashedId);
@@ -18,7 +26,14 @@ function App() {
   if (roomId === null) {
     return <JoinRoom onJoinRoom={handleJoinRoom} />;
   } else {
-    return <CallRoom roomId={roomId} />;
+    return (
+      <CallRoom
+        roomId={roomId}
+        onEndCall={() => {
+          handleLeaveRoom();
+        }}
+      />
+    );
   }
 }
 
