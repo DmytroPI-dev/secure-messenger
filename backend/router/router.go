@@ -2,11 +2,14 @@ package router
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"log"
 	"messenger-backend/room"
 	"net/http"
+	"os"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 type Message struct {
@@ -17,10 +20,25 @@ type Message struct {
 
 var roomManager = room.NewRoomManager()
 
+// allowedOrigins builds the set of permitted WebSocket origins from the
+// CORS_ORIGIN environment variable (comma-separated) plus the local dev origin.
+// No production origins are hardcoded — set CORS_ORIGIN on each server.
+func allowedOrigins() map[string]bool {
+	allowed := map[string]bool{"http://localhost:5173": true}
+	raw := os.Getenv("CORS_ORIGIN")
+
+	for o := range strings.SplitSeq(raw, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			allowed[o] = true
+		}
+	}
+	return allowed
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
-		return origin == "http://localhost:5173" || origin == "https://messenger.dmytro-dev.net"
+		return allowedOrigins()[r.Header.Get("Origin")]
 	},
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,

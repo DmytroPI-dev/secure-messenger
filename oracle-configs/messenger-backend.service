@@ -1,0 +1,17 @@
+[Unit]
+Description=Go Messenger Backend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/local/bin/messenger-backend
+Restart=on-failure
+Environment=PORT=8080
+# Set allowed WebSocket origins. Override via systemd drop-in:
+#   /etc/systemd/system/messenger-backend.service.d/cors.conf
+# Environment=CORS_ORIGIN=https://your-domain.example.com
+
+[Install]
+WantedBy=multi-user.target
