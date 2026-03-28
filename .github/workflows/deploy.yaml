@@ -30,7 +30,7 @@ jobs:
           VITE_TURN_PASSWORD: ${{ secrets.VITE_TURN_PASSWORD }}
         run: |
           cd frontend
-          npm install
+          npm ci
           npm run build
           # Move build to root for easier SCP transfer
           mv dist ${{ github.workspace }}/frontend-dist
@@ -43,29 +43,44 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # We transfer the binary and the frontend folder from the root
           source: "messenger-backend,frontend-dist/*"
-          target: "/home/ubuntu/deploy-tmp"
+          target: "/root/deploy-tmp"
 
       - name: Production Swap & Restart
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: CORS_ORIGIN
           script: |
             # Stop service
-            sudo systemctl stop messenger-backend || true
-            
+            systemctl stop messenger-backend || true
+
             # Update Backend
-            sudo mv /home/ubuntu/deploy-tmp/messenger-backend /usr/local/bin/messenger-backend
-            sudo chmod +x /usr/local/bin/messenger-backend
-            
+            mv /root/deploy-tmp/messenger-backend /usr/local/bin/messenger-backend
+            chmod +x /usr/local/bin/messenger-backend
+
+            # Set CORS_ORIGIN for the Oracle deployment via systemd drop-in
+            mkdir -p /etc/systemd/system/messenger-backend.service.d
+            printf '[Service]\nEnvironment="CORS_ORIGIN=%s"\n' "$CORS_ORIGIN" \
+              > /etc/systemd/system/messenger-backend.service.d/cors.conf
+            systemctl daemon-reload
+
             # Update Frontend
-            sudo rm -rf /var/www/messenger/*
-            sudo mv /home/ubuntu/deploy-tmp/frontend-dist/* /var/www/messenger/
-            
+            rm -rf /var/www/messenger/*
+            mv /root/deploy-tmp/frontend-dist/* /var/www/messenger/
+
             # Clean up temp
-            rm -rf /home/ubuntu/deploy-tmp
-            
+            rm -rf /root/deploy-tmp
+
             # Restart
-            sudo systemctl start messenger-backend
-            sudo systemctl reload nginx
+            systemctl start messenger-backend
+            systemctl reload nginx
+
+            # Health check — wait up to 15s for the backend to accept connections
+            for i in $(seq 1 15); do
+              curl -sf http://localhost:8080/health && break
+              sleep 1
+            done

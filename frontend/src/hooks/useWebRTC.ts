@@ -20,12 +20,62 @@ export function useWebRTC(
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const isProcessingRef = useRef(false);
   const messageIndexRef = useRef(0);
+  const disconnectTimerRef = useRef<number | null>(null);
+  const isRestartingIceRef = useRef(false);
+  const iceRestartAttemptsRef = useRef(0);
 
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [connectionState, setConnectionState] =
     useState<RTCPeerConnectionState>("new");
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+
+  const clearDisconnectTimer = () => {
+    if (disconnectTimerRef.current !== null) {
+      window.clearTimeout(disconnectTimerRef.current);
+      disconnectTimerRef.current = null;
+    }
+  };
+
+  const restartIce = async (_reason: string) => {
+    const peerConnection = peerConnectionRef.current;
+
+    if (!peerConnection) {
+      return;
+    }
+
+    if (myRoleRef.current !== "initiator") {
+      return;
+    }
+
+    if (isRestartingIceRef.current) {
+      return;
+    }
+
+    if (peerConnection.signalingState !== "stable") {
+      return;
+    }
+
+    if (!peerConnection.remoteDescription) {
+      return;
+    }
+
+    isRestartingIceRef.current = true;
+    iceRestartAttemptsRef.current += 1;
+
+    try {
+      const offer = await peerConnection.createOffer({ iceRestart: true });
+      await peerConnection.setLocalDescription(offer);
+      sendMessage({
+        type: "signal",
+        roomId: roomId,
+        data: { type: "offer", offer },
+      });
+    } catch (error) {
+      console.error("Error restarting ICE:", error);
+      isRestartingIceRef.current = false;
+    }
+  };
 
   // 1. Initialize PeerConnection
   useEffect(() => {
@@ -52,40 +102,47 @@ export function useWebRTC(
       }
     };
 
+    peerConnection.oniceconnectionstatechange = () => {
+    };
+
+    peerConnection.onicegatheringstatechange = () => {
+    };
+
     peerConnection.ontrack = (event) => {
-      console.log("🎥 Received remote track!");
       setRemoteStream(event.streams[0]);
     };
 
     peerConnection.onconnectionstatechange = () => {
-      console.log(
-        "📡 Connection State Changed:",
-        peerConnection.connectionState,
-      );
       setConnectionState(peerConnection.connectionState);
 
-      // FAST RECOVERY TRIGGER
-      if (peerConnection.connectionState === "disconnected") {
-        console.warn(
-          "⚠️ Peer disconnected. Waiting 3 seconds before auto-recovering...",
-        );
-
-        // Give it 3 seconds to recover (e.g., switching from WiFi to 4G)
-        setTimeout(() => {
-          if (peerConnection.connectionState !== "connected") {
-            console.warn("💀 Connection dead. Reloading to resync keys...");
-            window.location.reload();
-          }
-        }, 3000);
+      if (peerConnection.connectionState === "connected") {
+        clearDisconnectTimer();
+        isRestartingIceRef.current = false;
+        iceRestartAttemptsRef.current = 0;
       }
 
-      // Fallback just in case
+      if (peerConnection.connectionState === "disconnected") {
+        clearDisconnectTimer();
+        disconnectTimerRef.current = window.setTimeout(() => {
+          if (peerConnection.connectionState === "disconnected") {
+            void restartIce("disconnect timeout");
+          }
+          disconnectTimerRef.current = null;
+        }, 5000);
+      }
+
       if (peerConnection.connectionState === "failed") {
-        window.location.reload();
+        clearDisconnectTimer();
+        void restartIce("connection failed");
+      }
+
+      if (peerConnection.connectionState === "closed") {
+        clearDisconnectTimer();
       }
     };
 
     return () => {
+      clearDisconnectTimer();
       peerConnection.close();
     };
   }, [roomId, sendMessage]);
@@ -121,14 +178,12 @@ export function useWebRTC(
             });
 
             if (assignedRole === "initiator") {
-              console.log("⏳ Initiator waiting for receiver...");
               sendMessage({
                 type: "signal",
                 roomId: roomId,
                 data: { type: "initiator_arrived" },
               });
             } else {
-              console.log("👂 Receiver telling initiator they are ready!");
               sendMessage({
                 type: "signal",
                 roomId: roomId,
@@ -140,10 +195,7 @@ export function useWebRTC(
             message.data.type === "peer_ready"
           ) {
             if (myRoleRef.current === "initiator") {
-              if (hasCreatedOfferRef.current) {
-                console.warn("🔄 Receiver rebooted. Reloading to sync...");
-                window.location.reload();
-              } else {
+              if (!hasCreatedOfferRef.current) {
                 await startCall();
               }
             }
@@ -152,23 +204,18 @@ export function useWebRTC(
             message.data.type === "initiator_arrived"
           ) {
             if (myRoleRef.current === "receiver") {
-              if (hasReceivedOfferRef.current) {
-                console.warn("🔄 Initiator rebooted. Reloading to sync...");
-                window.location.reload();
-              } else {
-                console.log("📢 Initiator arrived. Resending peer_ready...");
-                sendMessage({
-                  type: "signal",
-                  roomId: roomId,
-                  data: { type: "peer_ready" },
-                });
-              }
+              sendMessage({
+                type: "signal",
+                roomId: roomId,
+                data: { type: "peer_ready" },
+              });
             }
           } else if (
             message.type === "signal" &&
             message.data.type === "offer"
           ) {
             hasReceivedOfferRef.current = true;
+            isRestartingIceRef.current = false;
             await peerConnectionRef.current?.setRemoteDescription(
               new RTCSessionDescription(message.data.offer),
             );
@@ -184,6 +231,7 @@ export function useWebRTC(
             message.type === "signal" &&
             message.data.type === "answer"
           ) {
+            isRestartingIceRef.current = false;
             await peerConnectionRef.current?.setRemoteDescription(
               new RTCSessionDescription(message.data.answer),
             );

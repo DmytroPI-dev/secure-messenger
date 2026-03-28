@@ -87,7 +87,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
   const handleBitrateChange = async (details: { value: number[] }) => {
     const value = details.value[0];
     setMaxBitrate([value]);
-    console.log("🎚️ Bitrate slider changed to:", value);
+
     if (!peerConnection) {
       console.error("❌ No peer connection available!");
       return;
@@ -109,10 +109,8 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
       }
       // Set the max bitrate
       params.encodings[0].maxBitrate = value * 1000; // kbps to bps
-      console.log("🔧 Setting maxBitrate to:", value * 1000, "bps");
       // Apply the parameters
       await sender.setParameters(params);
-      console.log("✅ Bitrate set successfully!");
       // Notify peer
       sendMessage({
         type: "peer-status",
