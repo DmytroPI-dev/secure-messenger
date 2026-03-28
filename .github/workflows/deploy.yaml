@@ -42,7 +42,7 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           # We transfer the binary and the frontend folder from the root
-          source: "messenger-backend,frontend-dist/*"
+          source: "messenger-backend,frontend-dist"
           target: "/root/deploy-tmp"
 
       - name: Production Swap & Restart
@@ -70,7 +70,7 @@ jobs:
 
             # Update Frontend
             rm -rf /var/www/messenger/*
-            mv /root/deploy-tmp/frontend-dist/* /var/www/messenger/
+            cp -r /root/deploy-tmp/frontend-dist/. /var/www/messenger/
 
             # Clean up temp
             rm -rf /root/deploy-tmp
