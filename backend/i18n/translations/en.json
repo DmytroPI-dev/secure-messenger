@@ -212,6 +212,52 @@
       }
     }
   },
+  "call": {
+    "verification": {
+      "kicker": "Peer verification",
+      "heading": {
+        "trusted": "Peer code verified",
+        "changed": "Peer code changed",
+        "waiting": "Waiting for peer code",
+        "unverified": "Verify peer code"
+      },
+      "description": {
+        "trusted": "The stored fingerprint matches this peer. Re-verify if the contact setup changed.",
+        "changed": "The stored fingerprint does not match this peer. Treat the session as untrusted until you verify and update it.",
+        "waiting": "The call is still negotiating. The peer code will appear once offer or answer exchange completes.",
+        "unverified": "Compare your short code with the peer short code on the other device, then mark it as verified."
+      },
+      "storedAt": "Stored {{time}}",
+      "yourCode": "Your short code",
+      "peerCode": "Peer short code",
+      "previousCode": "Previously trusted code",
+      "waitingCode": "Waiting for code...",
+      "actions": {
+        "trustNew": "Trust new fingerprint",
+        "markVerified": "Mark verified",
+        "clearSavedTrust": "Clear saved trust"
+      }
+    },
+    "status": {
+      "connectionLabel": "Connection status",
+      "establishing": "Establishing connection...",
+      "peerMuted": "Peer muted",
+      "peerVideoOff": "Peer video off",
+      "state": {
+        "new": "new",
+        "connecting": "connecting",
+        "connected": "connected",
+        "disconnected": "disconnected",
+        "failed": "failed",
+        "closed": "closed"
+      }
+    },
+    "controls": {
+      "toggleAudio": "Toggle audio",
+      "toggleVideo": "Toggle video",
+      "endCall": "End call"
+    }
+  },
   "weatherCodes": {
     "0": "Clear",
     "1": "Mostly clear",

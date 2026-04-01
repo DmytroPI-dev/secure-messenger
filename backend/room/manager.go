@@ -1,7 +1,7 @@
 package room
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"sync"
 	"time"
@@ -25,7 +25,13 @@ type Room struct {
 	mutex          sync.Mutex
 	InitiatorId    string
 	ReceiverId     string
+	Mode           string
 	LastDisconnect time.Time
+}
+
+type JoinResult struct {
+	Role string
+	Mode string
 }
 
 // RoomManager manages multiple rooms and their connections.
@@ -74,7 +80,16 @@ func (roomManager *RoomManager) Unlock() {
 }
 
 // JoinRoom adds a connection to the specified room. If the room does not exist, it creates a new one. If the room already has 2 connections, it logs a message and returns an error.
-func (roomManager *RoomManager) JoinRoom(roomId string, clientId string, conn *SafeConnection) (string, error) {
+func normalizeMode(mode string) string {
+	switch mode {
+	case "video":
+		return "video"
+	default:
+		return "audio"
+	}
+}
+
+func (roomManager *RoomManager) JoinRoom(roomId string, clientId string, requestedMode string, conn *SafeConnection) (JoinResult, error) {
 	room := roomManager.CreateRoom(roomId)
 
 	room.Lock()
@@ -83,8 +98,12 @@ func (roomManager *RoomManager) JoinRoom(roomId string, clientId string, conn *S
 	room.cleanDeadConnections()
 
 	if len(room.Connection) >= 2 {
-		log.Printf("Room %s is full", roomId)
-		return "", fmt.Errorf("room %s is full", roomId)
+		log.Printf("room join rejected: room is full")
+		return JoinResult{}, errors.New("room is full")
+	}
+
+	if room.Mode == "" {
+		room.Mode = normalizeMode(requestedMode)
 	}
 
 	// Role assignment logic moved inside the safe boundary of the Room!
@@ -96,12 +115,12 @@ func (roomManager *RoomManager) JoinRoom(roomId string, clientId string, conn *S
 		role = "receiver"
 		room.ReceiverId = clientId
 	} else {
-		return "", fmt.Errorf("room %s has no available roles", roomId)
+		return JoinResult{}, errors.New("room has no available roles")
 	}
 	conn.ClientId = clientId
 
 	room.Connection = append(room.Connection, conn)
-	return role, nil
+	return JoinResult{Role: role, Mode: room.Mode}, nil
 }
 
 // LeaveRoom removes a connection from the specified room. If the room becomes empty after removal, it starts a grace period timer to potentially delete the room if it remains empty.
@@ -129,7 +148,7 @@ func (roomManager *RoomManager) LeaveRoom(roomId string, conn *SafeConnection) {
 			}
 			if len(room.Connection) == 0 {
 				room.LastDisconnect = time.Now()
-				log.Printf("Room %s is now empty, grace period started", roomId)
+				log.Printf("room became empty; cleanup grace period started")
 			}
 			break
 		}
@@ -155,6 +174,18 @@ func (roomManager *RoomManager) GetRoomOccupancy(roomId string) int {
 	return len(room.Connection)
 }
 
+func (roomManager *RoomManager) GetRoomMode(roomId string) string {
+	room := roomManager.GetRoom(roomId)
+	if room == nil {
+		return ""
+	}
+
+	room.Lock()
+	defer room.Unlock()
+	room.cleanDeadConnections()
+	return room.Mode
+}
+
 // Broadcast sends a message to all connections in the specified room except the sender connection.
 func (roomManager *RoomManager) Broadcast(roomId string, message []byte, senderConn *SafeConnection) {
 	room := roomManager.GetRoom(roomId)
@@ -169,7 +200,7 @@ func (roomManager *RoomManager) Broadcast(roomId string, message []byte, senderC
 	for _, conn := range activeConn {
 		if conn != senderConn {
 			if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-				log.Printf("Error broadcasting message to room %s: %v", roomId, err)
+				log.Printf("broadcast failed: %v", err)
 			}
 		}
 	}
@@ -198,7 +229,7 @@ func (roomManager *RoomManager) DeleteRoom(roomId string) {
 	roomManager.Lock()
 	defer roomManager.Unlock()
 	delete(roomManager.Rooms, roomId)
-	log.Printf("Room %s permanently deleted", roomId)
+	log.Printf("room permanently deleted")
 }
 
 func (roomManager *RoomManager) CleanupRooms() {
@@ -223,7 +254,7 @@ func (roomManager *RoomManager) CleanupRooms() {
 			}
 			for _, roomId := range toDelete {
 				delete(roomManager.Rooms, roomId)
-				log.Printf("Cleaned up empty room %s", roomId)
+				log.Printf("cleaned up empty room")
 			}
 		}()
 	}
@@ -238,7 +269,7 @@ func (r *Room) cleanDeadConnections() {
 		if conn != nil && conn.UnderlyingConn() != nil {
 			aliveConnections = append(aliveConnections, conn)
 		} else {
-			log.Printf("Removed dead connection from room %s", r.Id)
+			log.Printf("removed dead connection from room")
 		}
 	}
 	r.Connection = aliveConnections

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { type WebRTCCallMode } from "@/hooks/useWebRTC";
 
 const MAX_RECONNECT_ATTEMPTS = 6;
 const RECONNECT_BASE_DELAY_MS = 1000;
@@ -9,6 +10,7 @@ interface UseWebSocketReturn {
   messages: any[];
   isConnected: boolean;
   error: string | null;
+  assignedMode: WebRTCCallMode | null;
 }
 
 // Helper function to keep ID persistent during a browser session
@@ -22,10 +24,19 @@ const getOrCreateClientId = (roomId: string) => {
   return id;
 };
 
-export function useWebSocket(roomId: string): UseWebSocketReturn {
+function parseAssignedMode(mode: unknown): WebRTCCallMode | null {
+  if (mode === "audio" || mode === "video") {
+    return mode;
+  }
+
+  return null;
+}
+
+export function useWebSocket(roomId: string, requestedMode: WebRTCCallMode): UseWebSocketReturn {
   const [messages, setMessages] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [assignedMode, setAssignedMode] = useState<WebRTCCallMode | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const clientId = useRef<string>(getOrCreateClientId(roomId));
   const reconnectAttemptsRef = useRef(0);
@@ -59,7 +70,7 @@ export function useWebSocket(roomId: string): UseWebSocketReturn {
           JSON.stringify({
             type: "join",
             roomId: roomId,
-            data: { clientId: clientId.current },
+            data: { clientId: clientId.current, mode: requestedMode },
           }),
         );
       };
@@ -67,6 +78,9 @@ export function useWebSocket(roomId: string): UseWebSocketReturn {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          if (data?.type === "role") {
+            setAssignedMode(parseAssignedMode(data?.data?.mode));
+          }
           setMessages((prev) => [...prev, data]);
         } catch (err) {
           console.error("Failed to parse message:", err);
@@ -120,5 +134,5 @@ export function useWebSocket(roomId: string): UseWebSocketReturn {
     }
   }, []);
 
-  return { sendMessage, messages, isConnected, error };
+  return { sendMessage, messages, isConnected, error, assignedMode };
 }

@@ -212,6 +212,52 @@
       }
     }
   },
+  "call": {
+    "verification": {
+      "kicker": "Eş doğrulaması",
+      "heading": {
+        "trusted": "Eş kodu doğrulandı",
+        "changed": "Eş kodu değişti",
+        "waiting": "Eş kodu bekleniyor",
+        "unverified": "Eş kodunu doğrulayın"
+      },
+      "description": {
+        "trusted": "Kayıtlı parmak izi bu eş ile uyuşuyor. İletişim düzeni değiştiyse yeniden doğrulayın.",
+        "changed": "Kayıtlı parmak izi bu eş ile uyuşmuyor. Doğrulayıp güncellemeden bu oturumu güvenilmez sayın.",
+        "waiting": "Arama hala kuruluyor. Eş kodu offer ve answer değişimi tamamlandığında görünecek.",
+        "unverified": "Kısa kodunuzu diğer cihazdaki eş kısa kodu ile karşılaştırın, sonra doğrulandı olarak işaretleyin."
+      },
+      "storedAt": "Kaydedildi {{time}}",
+      "yourCode": "Kısa kodunuz",
+      "peerCode": "Eş kısa kodu",
+      "previousCode": "Önceden güvenilen kod",
+      "waitingCode": "Kod bekleniyor...",
+      "actions": {
+        "trustNew": "Yeni parmak izine güven",
+        "markVerified": "Doğrulandı olarak işaretle",
+        "clearSavedTrust": "Kayıtlı güveni temizle"
+      }
+    },
+    "status": {
+      "connectionLabel": "Bağlantı durumu",
+      "establishing": "Bağlantı kuruluyor...",
+      "peerMuted": "Eş sesi kapattı",
+      "peerVideoOff": "Eş videosu kapalı",
+      "state": {
+        "new": "yeni",
+        "connecting": "bağlanıyor",
+        "connected": "bağlandı",
+        "disconnected": "bağlantı koptu",
+        "failed": "başarısız",
+        "closed": "kapalı"
+      }
+    },
+    "controls": {
+      "toggleAudio": "Sesi değiştir",
+      "toggleVideo": "Videoyu değiştir",
+      "endCall": "Aramayı bitir"
+    }
+  },
   "weatherCodes": {
     "0": "Açık",
     "1": "Çoğunlukla açık",

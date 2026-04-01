@@ -1,18 +1,15 @@
 import { useWebSocket } from "@/hooks/useWebSocket";
 import {
   Box,
+  Button,
   HStack,
   Stack,
   Text,
   VStack,
   Spinner,
-  Slider,
   IconButton,
   useBreakpointValue,
 } from "@chakra-ui/react";
-
-import { useWebRTC } from "@/hooks/useWebRTC";
-import { useRTCStats } from "@/hooks/useRTCStats";
 import { useEffect, useRef, useState } from "react";
 import {
   MdCallEnd,
@@ -21,23 +18,45 @@ import {
   MdVideocam,
   MdVideocamOff,
 } from "react-icons/md";
+import { useTranslation } from "react-i18next";
+import { type WebRTCCallMode, useWebRTC } from "@/hooks/useWebRTC";
+import {
+  buildFingerprintShortCode,
+  clearStoredPeerFingerprint,
+  readStoredPeerFingerprint,
+  writeStoredPeerFingerprint,
+} from "@/utils/fingerprint";
 
 interface CallRoomProps {
   roomId: string;
+  mode: WebRTCCallMode;
+  continuityHint: string;
   onEndCall: () => void;
 }
 
-export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
-  const { messages, isConnected, sendMessage } = useWebSocket(roomId);
-  const isMobile = useBreakpointValue({ base: true, md: false });
+type FingerprintTrustState = "awaiting-peer" | "unverified" | "trusted" | "changed";
 
-  const [maxBitrate, setMaxBitrate] = useState([2500]);
+export const CallRoom: React.FC<CallRoomProps> = ({
+  roomId,
+  mode,
+  continuityHint,
+  onEndCall,
+}) => {
+  const { t } = useTranslation();
+  const { messages, isConnected, sendMessage, assignedMode } = useWebSocket(roomId, mode);
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const effectiveMode = assignedMode ?? mode;
+  const isAudioOnly = effectiveMode === "audio";
+
   const [audioMuted, setAudioMuted] = useState(true);
-  const [videoMuted, setVideoMuted] = useState(true);
+  const [videoMuted, setVideoMuted] = useState(isAudioOnly);
   const [remoteStatus, setRemoteStatus] = useState({
     audioMuted: false,
     videoMuted: false,
   });
+  const [trustState, setTrustState] = useState<FingerprintTrustState>("awaiting-peer");
+  const [trustedFingerprint, setTrustedFingerprint] = useState<string | null>(null);
+  const [trustedAt, setTrustedAt] = useState<string | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const hasStoppedRef = useRef(false);
@@ -47,10 +66,9 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
     remoteStream,
     connectionState,
     stopCall,
-    peerConnection,
-  } = useWebRTC(sendMessage, roomId, messages);
-
-  const rtcStats = useRTCStats(peerConnection);
+    localFingerprint,
+    remoteFingerprint,
+  } = useWebRTC(sendMessage, roomId, messages, effectiveMode);
 
   const toggleAudio = () => {
     const newAudioMuted = !audioMuted;
@@ -69,6 +87,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
   };
 
   const toggleVideo = () => {
+    if (isAudioOnly) {
+      return;
+    }
+
     const newVideoMuted = !videoMuted;
     localStream?.getVideoTracks().forEach((track) => {
       track.enabled = !newVideoMuted;
@@ -84,48 +106,6 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
     setVideoMuted(newVideoMuted);
   };
 
-  const handleBitrateChange = async (details: { value: number[] }) => {
-    const value = details.value[0];
-    setMaxBitrate([value]);
-
-    if (!peerConnection) {
-      console.error("❌ No peer connection available!");
-      return;
-    }
-    const sender = peerConnection
-      .getSenders()
-      .find((s) => s.track?.kind === "video");
-
-    if (!sender) {
-      console.error("❌ No video sender found!");
-      return;
-    }
-    try {
-      // IMPORTANT: Get fresh parameters from the sender
-      const params = sender.getParameters();
-      // Ensure encodings array exists
-      if (!params.encodings || params.encodings.length === 0) {
-        params.encodings = [{}];
-      }
-      // Set the max bitrate
-      params.encodings[0].maxBitrate = value * 1000; // kbps to bps
-      // Apply the parameters
-      await sender.setParameters(params);
-      // Notify peer
-      sendMessage({
-        type: "peer-status",
-        roomId: roomId,
-        data: {
-          audioMuted,
-          videoMuted,
-          maxBitrate: value,
-        },
-      });
-    } catch (error) {
-      console.error("❌ Failed to set bitrate:", error);
-    }
-  };
-
   const handleEndCall = () => {
     if (!hasStoppedRef.current) {
       hasStoppedRef.current = true;
@@ -135,139 +115,370 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
     onEndCall();
   };
 
-  const bitrateMarks = [
-    { value: 500, label: "Low" },
-    { value: 2500, label: "Med" },
-    { value: 5000, label: "High" },
-  ];
-
-  // Added isConnected to dependencies
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
+    if (localVideoRef.current) {
       localVideoRef.current.srcObject = localStream;
     }
   }, [localStream, isConnected]);
 
-  // Added isConnected to dependencies
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
+    if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream, isConnected]);
+
+  useEffect(() => {
+    return () => {
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = null;
+      }
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    setVideoMuted(isAudioOnly);
+  }, [isAudioOnly]);
+
+  useEffect(() => {
+    if (!remoteFingerprint) {
+      setTrustState("awaiting-peer");
+      setTrustedFingerprint(null);
+      setTrustedAt(null);
+      return;
+    }
+
+    const storedRecord = readStoredPeerFingerprint(continuityHint);
+    if (!storedRecord) {
+      setTrustState("unverified");
+      setTrustedFingerprint(null);
+      setTrustedAt(null);
+      return;
+    }
+
+    setTrustedFingerprint(storedRecord.fingerprint);
+    setTrustedAt(storedRecord.verifiedAt);
+    setTrustState(
+      storedRecord.fingerprint === remoteFingerprint ? "trusted" : "changed",
+    );
+  }, [continuityHint, remoteFingerprint]);
 
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg?.type === "peer-status") {
       setRemoteStatus({
         audioMuted: !!lastMsg.data.audioMuted,
-        videoMuted: !!lastMsg.data.videoMuted,
+        videoMuted: isAudioOnly ? true : !!lastMsg.data.videoMuted,
       });
     }
     if (lastMsg?.type === "call-ended") {
-      // Peer ended call, just clean up locally without sending another message
       if (!hasStoppedRef.current) {
         hasStoppedRef.current = true;
         stopCall();
       }
       onEndCall();
     }
-  }, [messages, onEndCall, stopCall]);
+  }, [isAudioOnly, messages, onEndCall, stopCall]);
 
-  return isMobile ? (
+  const handleTrustFingerprint = () => {
+    if (!remoteFingerprint) {
+      return;
+    }
+
+    const storedRecord = writeStoredPeerFingerprint(continuityHint, remoteFingerprint);
+    setTrustedFingerprint(storedRecord.fingerprint);
+    setTrustedAt(storedRecord.verifiedAt);
+    setTrustState("trusted");
+  };
+
+  const handleClearTrust = () => {
+    clearStoredPeerFingerprint(continuityHint);
+    setTrustedFingerprint(null);
+    setTrustedAt(null);
+    setTrustState(remoteFingerprint ? "unverified" : "awaiting-peer");
+  };
+
+  const trustTone =
+    trustState === "trusted"
+      ? { border: "rgba(104, 211, 145, 0.4)", bg: "rgba(20, 82, 44, 0.42)" }
+      : trustState === "changed"
+        ? { border: "rgba(252, 129, 129, 0.44)", bg: "rgba(103, 21, 21, 0.4)" }
+        : { border: "rgba(246, 224, 94, 0.38)", bg: "rgba(90, 73, 14, 0.34)" };
+
+  const trustHeading =
+    trustState === "trusted"
+      ? t("call.verification.heading.trusted")
+      : trustState === "changed"
+        ? t("call.verification.heading.changed")
+        : trustState === "awaiting-peer"
+          ? t("call.verification.heading.waiting")
+          : t("call.verification.heading.unverified");
+
+  const trustDescription =
+    trustState === "trusted"
+      ? t("call.verification.description.trusted")
+      : trustState === "changed"
+        ? t("call.verification.description.changed")
+        : trustState === "awaiting-peer"
+          ? t("call.verification.description.waiting")
+          : t("call.verification.description.unverified");
+
+  const trustTimestamp = trustedAt
+    ? t("call.verification.storedAt", {
+        time: new Date(trustedAt).toLocaleString(),
+      })
+    : null;
+  const localShortCode = buildFingerprintShortCode(localFingerprint);
+  const remoteShortCode = buildFingerprintShortCode(remoteFingerprint);
+  const previousShortCode = buildFingerprintShortCode(trustedFingerprint);
+  const connectionStateLabel = t(`call.status.state.${connectionState}`, {
+    defaultValue: connectionState,
+  });
+  const localShortCodeLabel = localShortCode || t("call.verification.waitingCode");
+  const remoteShortCodeLabel = remoteShortCode || t("call.verification.waitingCode");
+  const previousShortCodeLabel = previousShortCode || t("call.verification.waitingCode");
+
+  const fingerprintPanel = (
     <Box
-      position="fixed" // 1. Locks container to the screen completely
-      top={0}
-      left={0}
-      width="100dvw"   // 2. Dynamic Viewport Width
-      height="100dvh"  // 3. Dynamic Viewport Height (ignores mobile address bars)
-      bg="black"
-      zIndex={9999}    // Ensure it overlays your app completely
-      overflow="hidden"
-      style={{ touchAction: "none" }} // 4. PREVENTS the screen from being dragged/bounced with fingers
+      width="full"
+      maxW={isMobile ? "none" : "44rem"}
+      borderRadius="xl"
+      border="1px solid"
+      borderColor={trustTone.border}
+      bg={trustTone.bg}
+      p={4}
+      boxShadow="lg"
+      backdropFilter="blur(12px)"
     >
-      {/* Remote video - TRULY full screen */}
+      <VStack align="stretch" gap={3}>
+        <HStack justify="space-between" align="start" flexWrap="wrap">
+          <VStack align="start" gap={1}>
+            <Text fontSize="xs" textTransform="uppercase" letterSpacing="0.14em" color="whiteAlpha.700">
+              {t("call.verification.kicker")}
+            </Text>
+            <Text fontSize="sm" fontWeight="semibold" color="white">
+              {trustHeading}
+            </Text>
+          </VStack>
+          {trustTimestamp ? (
+            <Text fontSize="xs" color="whiteAlpha.700">
+              {trustTimestamp}
+            </Text>
+          ) : null}
+        </HStack>
+
+        <Text fontSize="xs" color="whiteAlpha.800">
+          {trustDescription}
+        </Text>
+
+        <Stack direction={{ base: "column", md: "row" }} gap={3}>
+          <Box
+            flex="1"
+            borderRadius="lg"
+            border="1px solid rgba(255,255,255,0.12)"
+            bg="rgba(255,255,255,0.06)"
+            p={3}
+          >
+            <Text fontSize="2xs" textTransform="uppercase" letterSpacing="0.12em" color="whiteAlpha.700" mb={2}>
+              {t("call.verification.yourCode")}
+            </Text>
+            <Text fontFamily="mono" fontSize="sm" color="whiteAlpha.950">
+              {localShortCodeLabel}
+            </Text>
+          </Box>
+          <Box
+            flex="1"
+            borderRadius="lg"
+            border="1px solid rgba(255,255,255,0.12)"
+            bg="rgba(255,255,255,0.06)"
+            p={3}
+          >
+            <Text fontSize="2xs" textTransform="uppercase" letterSpacing="0.12em" color="whiteAlpha.700" mb={2}>
+              {t("call.verification.peerCode")}
+            </Text>
+            <Text fontFamily="mono" fontSize="sm" color="whiteAlpha.950">
+              {remoteShortCodeLabel}
+            </Text>
+          </Box>
+        </Stack>
+
+        {trustState === "changed" && trustedFingerprint ? (
+          <Box borderRadius="lg" border="1px solid rgba(255,255,255,0.12)" bg="rgba(255,255,255,0.05)" p={3}>
+            <Text fontSize="2xs" textTransform="uppercase" letterSpacing="0.12em" color="whiteAlpha.700" mb={2}>
+              {t("call.verification.previousCode")}
+            </Text>
+            <Text fontFamily="mono" fontSize="sm" color="whiteAlpha.900">
+              {previousShortCodeLabel}
+            </Text>
+          </Box>
+        ) : null}
+
+        {remoteFingerprint ? (
+          <HStack gap={3} flexWrap="wrap">
+            <Button
+              size="sm"
+              bg={trustState === "changed" ? "red.500" : "rgba(191, 143, 73, 0.24)"}
+              color="white"
+              border="1px solid rgba(255,255,255,0.16)"
+              _hover={{ bg: trustState === "changed" ? "red.600" : "rgba(191, 143, 73, 0.34)" }}
+              onClick={handleTrustFingerprint}
+            >
+              {trustState === "changed"
+                ? t("call.verification.actions.trustNew")
+                : t("call.verification.actions.markVerified")}
+            </Button>
+            {(trustState === "trusted" || trustState === "changed") ? (
+              <Button
+                size="sm"
+                variant="outline"
+                color="whiteAlpha.900"
+                borderColor="whiteAlpha.300"
+                _hover={{ bg: "whiteAlpha.200" }}
+                onClick={handleClearTrust}
+              >
+                {t("call.verification.actions.clearSavedTrust")}
+              </Button>
+            ) : null}
+          </HStack>
+        ) : null}
+      </VStack>
+    </Box>
+  );
+
+  const hiddenMediaElements = isAudioOnly ? (
+    <>
+      <video
+        ref={localVideoRef}
+        autoPlay
+        muted
+        playsInline
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+      />
       <video
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          zIndex: 0,
-          backgroundColor: "black",
-          // REMOVED border and borderRadius to make it edge-to-edge
-        }}
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
       />
+    </>
+  ) : null;
 
-      {/* Stats at top center */}
+  return isMobile ? (
+    <Box
+      position="fixed"
+      top={0}
+      left={0}
+      width="100dvw"
+      height="100dvh"
+      bg="black"
+      zIndex={9999}
+      overflow="hidden"
+      style={{ touchAction: "none" }}
+    >
+      {hiddenMediaElements}
+
       <Box
         position="absolute"
-        top="max(20px, env(safe-area-inset-top))" // Respects iOS notches
-        left="50%"
-        transform="translateX(-50%)"
-        zIndex={2}
-        bg="blackAlpha.700"
-        px={4}
-        py={2}
-        borderRadius="full"
-        backdropFilter="blur(10px)"
+        top="max(16px, env(safe-area-inset-top))"
+        left="16px"
+        right="16px"
+        zIndex={3}
       >
-        <HStack gap={3} fontSize="xs" color="white">
-          <Text>📶 {rtcStats.bitrate.toFixed(0)} kbps</Text>
-          <Text>⏱️ {rtcStats.rtt}ms</Text>
-        </HStack>
+        {fingerprintPanel}
       </Box>
 
-      {/* Local video PiP - top right */}
-      <Box
-        position="absolute"
-        top="max(80px, env(safe-area-inset-top) + 60px)"
-        right="20px"
-        width="100px"
-        height="140px"
-        borderRadius="xl" // Adjusted for a cleaner mobile look
-        overflow="hidden"
-        border="2px solid"
-        borderColor="whiteAlpha.400"
-        boxShadow="dark-lg"
-        zIndex={2} // Ensure it's above the remote video
-      >
+      {isAudioOnly ? (
+        <Box
+          position="absolute"
+          inset={0}
+          zIndex={0}
+          bg="linear-gradient(180deg, rgba(2,10,17,0.96), rgba(9,30,44,0.92))"
+        />
+      ) : (
         <video
-          ref={localVideoRef}
+          ref={remoteVideoRef}
           autoPlay
           playsInline
-          muted
           style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            transform: "scaleX(-1)",
-            backgroundColor: "#2D3748", // Dark placeholder background
+            zIndex: 0,
+            backgroundColor: "black",
           }}
         />
-        {videoMuted && (
-          <Box
-            position="absolute"
-            top="50%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-            fontSize="3xl"
-            zIndex={3}
-          >
-            👤
-          </Box>
-        )}
-      </Box>
+      )}
 
-      {/* Remote status indicators */}
+      {!isAudioOnly ? (
+        <Box
+          position="absolute"
+          top="max(220px, env(safe-area-inset-top) + 200px)"
+          right="20px"
+          width="100px"
+          height="140px"
+          borderRadius="xl"
+          overflow="hidden"
+          border="2px solid"
+          borderColor="whiteAlpha.400"
+          boxShadow="dark-lg"
+          zIndex={2}
+        >
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: "scaleX(-1)",
+              backgroundColor: "#2D3748",
+            }}
+          />
+          {videoMuted && (
+            <Box
+              position="absolute"
+              top="50%"
+              left="50%"
+              transform="translate(-50%, -50%)"
+              fontSize="3xl"
+              zIndex={3}
+            >
+              👤
+            </Box>
+          )}
+        </Box>
+      ) : (
+        <Box position="absolute" inset={0} display="flex" alignItems="center" justifyContent="center" zIndex={1} pointerEvents="none">
+          <VStack gap={4}>
+            <Box
+              width="7rem"
+              height="7rem"
+              borderRadius="full"
+              border="1px solid rgba(255,255,255,0.16)"
+              bg="rgba(255,255,255,0.08)"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              fontSize="2.4rem"
+              color="white"
+            >
+              ♪
+            </Box>
+          </VStack>
+        </Box>
+      )}
+
       {(remoteStatus.audioMuted || remoteStatus.videoMuted) && (
         <Box
           position="absolute"
-          bottom="max(140px, env(safe-area-inset-bottom) + 120px)"
+          bottom="max(200px, env(safe-area-inset-bottom) + 180px)"
           left="50%"
           transform="translateX(-50%)"
           zIndex={2}
@@ -278,23 +489,22 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
           backdropFilter="blur(10px)"
         >
           <HStack gap={3} fontSize="sm" color="white">
-            {remoteStatus.audioMuted && <Text>🔇 Peer muted</Text>}
-            {remoteStatus.videoMuted && <Text>📵 Peer video off</Text>}
+            {remoteStatus.audioMuted && <Text>🔇 {t("call.status.peerMuted")}</Text>}
+            {!isAudioOnly && remoteStatus.videoMuted && <Text>📵 {t("call.status.peerVideoOff")}</Text>}
           </HStack>
         </Box>
       )}
 
-      {/* Control buttons at bottom */}
       <Box
         position="absolute"
-        bottom="max(30px, env(safe-area-inset-bottom))" // Safe area for iOS swipe bar
+        bottom="max(30px, env(safe-area-inset-bottom))"
         left="50%"
         transform="translateX(-50%)"
         zIndex={3}
       >
         <HStack gap={6}>
           <IconButton
-            aria-label="Toggle audio"
+            aria-label={t("call.controls.toggleAudio")}
             onClick={toggleAudio}
             size="lg"
             rounded="full"
@@ -307,7 +517,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
           </IconButton>
 
           <IconButton
-            aria-label="End call"
+            aria-label={t("call.controls.endCall")}
             onClick={handleEndCall}
             size="xl"
             rounded="full"
@@ -316,29 +526,30 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             width="72px"
             height="72px"
             fontSize="3xl"
-            boxShadow="0 4px 14px 0 rgba(229, 62, 62, 0.39)" // Nice glow effect
+            boxShadow="0 4px 14px 0 rgba(229, 62, 62, 0.39)"
             _hover={{ bg: "red.600" }}
           >
             <MdCallEnd />
           </IconButton>
 
-          <IconButton
-            aria-label="Toggle video"
-            onClick={toggleVideo}
-            size="lg"
-            rounded="full"
-            bg={videoMuted ? "white" : "whiteAlpha.300"}
-            color={videoMuted ? "black" : "white"}
-            backdropFilter="blur(10px)"
-            _hover={{ bg: videoMuted ? "gray.200" : "whiteAlpha.400" }}
-          >
-            {videoMuted ? <MdVideocamOff size="24px" /> : <MdVideocam size="24px" />}
-          </IconButton>
+          {!isAudioOnly ? (
+            <IconButton
+              aria-label={t("call.controls.toggleVideo")}
+              onClick={toggleVideo}
+              size="lg"
+              rounded="full"
+              bg={videoMuted ? "white" : "whiteAlpha.300"}
+              color={videoMuted ? "black" : "white"}
+              backdropFilter="blur(10px)"
+              _hover={{ bg: videoMuted ? "gray.200" : "whiteAlpha.400" }}
+            >
+              {videoMuted ? <MdVideocamOff size="24px" /> : <MdVideocam size="24px" />}
+            </IconButton>
+          ) : null}
         </HStack>
       </Box>
     </Box>
   ) : (
-    // Desktop layout
     <VStack
       gap={6}
       p={8}
@@ -352,104 +563,103 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
     >
       {isConnected ? (
         <>
+          {fingerprintPanel}
+
           <VStack gap={1}>
             <HStack gap={4}>
               <Text fontSize="sm" opacity={0.9}>
-                Connection status: <b>{connectionState}</b>
+                {t("call.status.connectionLabel")}: <b>{connectionStateLabel}</b>
               </Text>
               <Box
                 w="10px"
                 h="10px"
                 borderRadius="full"
-                bg={
-                  connectionState === "connected" ? "green.400" : "yellow.400"
-                }
+                bg={connectionState === "connected" ? "green.400" : "yellow.400"}
               />
             </HStack>
           </VStack>
 
-          <Stack direction={{ base: "column", md: "row" }} gap={6} mt={4}>
-            <Box textAlign="center" position="relative">
-              <video
-                id="Outgoing"
-                ref={localVideoRef}
-                autoPlay
-                muted
-                playsInline
-                style={{
-                  width: "300px",
-                  height: "225px",
-                  transform: "scaleX(-1)",
-                  borderRadius: "12px",
-                  border: "2px solid rgba(255,255,255,0.2)",
-                  backgroundColor: "black",
-                }}
-              />
-            </Box>
+          {hiddenMediaElements}
 
-            <Box textAlign="center" position="relative">
-              <video
-                id="Incoming"
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                style={{
-                  width: "300px",
-                  height: "225px",
-                  borderRadius: "12px",
-                  border: "2px solid rgba(255,255,255,0.2)",
-                  backgroundColor: "black",
-                }}
-              />
-              <HStack position="absolute" top={2} right={2} gap={2}>
-                {remoteStatus.audioMuted && (
-                  <Box bg="red.500" p={1} borderRadius="md">
-                    🔇
-                  </Box>
-                )}
-                {remoteStatus.videoMuted && (
-                  <Box bg="red.500" p={1} borderRadius="md">
-                    🎥 Off
-                  </Box>
-                )}
-              </HStack>
-            </Box>
-          </Stack>
-
-          <HStack gap={4} mt={6}>
-            {" "}
-            <Box p={4} bg="whiteAlpha.00" borderRadius="md">
-              <VStack gap={3} align="stretch">
-                <HStack justify="space-between">
-                  <Text fontSize="sm" fontWeight="medium">
-                    📊 Video Quality
-                  </Text>
-                  <Text fontSize="sm" color="blue.300">
-                    {maxBitrate[0]} kbps
-                  </Text>
-                </HStack>
-
-                <Slider.Root
-                  width="full"
-                  colorPalette="blue"
-                  value={maxBitrate}
-                  onValueChange={handleBitrateChange}
-                  min={500}
-                  max={5000}
-                  step={100}
+          {isAudioOnly ? (
+            <Box
+              mt={4}
+              width="full"
+              maxW="36rem"
+              borderRadius="1rem"
+              border="1px solid rgba(255,255,255,0.12)"
+              bg="rgba(4, 18, 28, 0.34)"
+              p={10}
+            >
+              <VStack gap={4}>
+                <Box
+                  width="6rem"
+                  height="6rem"
+                  borderRadius="full"
+                  border="1px solid rgba(255,255,255,0.18)"
+                  bg="rgba(255,255,255,0.08)"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  fontSize="2rem"
                 >
-                  <Slider.Control>
-                    <Slider.Track>
-                      <Slider.Range />
-                    </Slider.Track>
-                    <Slider.Thumb index={0} />
-                    <Slider.Marks marks={bitrateMarks} />
-                  </Slider.Control>
-                </Slider.Root>
+                  ♪
+                </Box>
               </VStack>
             </Box>
+          ) : (
+            <Stack direction={{ base: "column", md: "row" }} gap={6} mt={4}>
+              <Box textAlign="center" position="relative">
+                <video
+                  id="Outgoing"
+                  ref={localVideoRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{
+                    width: "300px",
+                    height: "225px",
+                    transform: "scaleX(-1)",
+                    borderRadius: "12px",
+                    border: "2px solid rgba(255,255,255,0.2)",
+                    backgroundColor: "black",
+                  }}
+                />
+              </Box>
+
+              <Box textAlign="center" position="relative">
+                <video
+                  id="Incoming"
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  style={{
+                    width: "300px",
+                    height: "225px",
+                    borderRadius: "12px",
+                    border: "2px solid rgba(255,255,255,0.2)",
+                    backgroundColor: "black",
+                  }}
+                />
+                <HStack position="absolute" top={2} right={2} gap={2}>
+                  {remoteStatus.audioMuted && (
+                    <Box bg="red.500" p={1} borderRadius="md">
+                      🔇
+                    </Box>
+                  )}
+                  {remoteStatus.videoMuted && (
+                    <Box bg="red.500" p={1} borderRadius="md">
+                      🎥 {t("call.status.peerVideoOff")}
+                    </Box>
+                  )}
+                </HStack>
+              </Box>
+            </Stack>
+          )}
+
+          <HStack gap={4} mt={6}>
             <IconButton
-              aria-label="Toggle audio"
+              aria-label={t("call.controls.toggleAudio")}
               onClick={toggleAudio}
               size="lg"
               rounded="full"
@@ -461,7 +671,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
               {audioMuted ? <MdMicOff /> : <MdMic />}
             </IconButton>
             <IconButton
-              aria-label="End call"
+              aria-label={t("call.controls.endCall")}
               onClick={handleEndCall}
               size="xl"
               rounded="full"
@@ -474,37 +684,26 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
             >
               <MdCallEnd />
             </IconButton>
-            <IconButton
-              aria-label="Toggle video"
-              onClick={toggleVideo}
-              size="lg"
-              rounded="full"
-              bg={videoMuted ? "red.500" : "whiteAlpha.300"}
-              color="white"
-              backdropFilter="blur(10px)"
-              _hover={{ bg: videoMuted ? "red.600" : "whiteAlpha.400" }}
-            >
-              {videoMuted ? <MdVideocamOff /> : <MdVideocam />}
-            </IconButton>
-            <Box textAlign="center" position="relative">
-              <VStack gap={1} align="center">
-                <Text fontSize="sm" fontWeight="medium">
-                  Connection Stats
-                </Text>
-                <HStack gap={4} bg="blackAlpha.00" p={2} borderRadius="md">
-                  <Text fontSize="xs">
-                    📶 {rtcStats.bitrate.toFixed(0)} kbps
-                  </Text>
-                  <Text fontSize="xs">⏱️ {rtcStats.rtt.toFixed(0)}ms</Text>
-                </HStack>
-              </VStack>
-            </Box>
+            {!isAudioOnly ? (
+              <IconButton
+                aria-label={t("call.controls.toggleVideo")}
+                onClick={toggleVideo}
+                size="lg"
+                rounded="full"
+                bg={videoMuted ? "red.500" : "whiteAlpha.300"}
+                color="white"
+                backdropFilter="blur(10px)"
+                _hover={{ bg: videoMuted ? "red.600" : "whiteAlpha.400" }}
+              >
+                {videoMuted ? <MdVideocamOff /> : <MdVideocam />}
+              </IconButton>
+            ) : null}
           </HStack>
         </>
       ) : (
         <VStack p={10}>
           <Spinner size="xl" />
-          <Text mt={4}>Establishing connection...</Text>
+          <Text mt={4}>{t("call.status.establishing")}</Text>
         </VStack>
       )}
     </VStack>

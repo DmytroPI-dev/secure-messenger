@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { extractDTLSFingerprint } from "@/utils/fingerprint";
+
+export type WebRTCCallMode = "audio" | "video";
 
 interface UseWebRTCReturn {
   localStream: MediaStream | null;
@@ -7,12 +10,19 @@ interface UseWebRTCReturn {
   startCall: () => Promise<void>;
   stopCall: () => void;
   peerConnection: RTCPeerConnection | null;
+  localFingerprint: string | null;
+  remoteFingerprint: string | null;
+}
+
+function resolveCallMode(mode: unknown): WebRTCCallMode {
+  return mode === "video" ? "video" : "audio";
 }
 
 export function useWebRTC(
   sendMessage: (message: any) => void,
   roomId: string,
   messages: any[],
+  mode: WebRTCCallMode,
 ): UseWebRTCReturn {
   const myRoleRef = useRef<"initiator" | "receiver" | null>(null);
   const hasCreatedOfferRef = useRef(false);
@@ -26,9 +36,26 @@ export function useWebRTC(
 
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [localFingerprint, setLocalFingerprint] = useState<string | null>(null);
+  const [remoteFingerprint, setRemoteFingerprint] = useState<string | null>(null);
   const [connectionState, setConnectionState] =
     useState<RTCPeerConnectionState>("new");
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+
+  const updateLocalFingerprint = (sdp?: string | null) => {
+    const nextFingerprint = extractDTLSFingerprint(sdp);
+    if (nextFingerprint) {
+      setLocalFingerprint(nextFingerprint);
+    }
+  };
+
+  const updateRemoteFingerprint = (sdp?: string | null) => {
+    const nextFingerprint = extractDTLSFingerprint(sdp);
+    if (nextFingerprint) {
+      setRemoteFingerprint(nextFingerprint);
+    }
+  };
 
   const clearDisconnectTimer = () => {
     if (disconnectTimerRef.current !== null) {
@@ -36,6 +63,10 @@ export function useWebRTC(
       disconnectTimerRef.current = null;
     }
   };
+
+  useEffect(() => {
+    localStreamRef.current = localStream;
+  }, [localStream]);
 
   const restartIce = async (_reason: string) => {
     const peerConnection = peerConnectionRef.current;
@@ -66,6 +97,7 @@ export function useWebRTC(
     try {
       const offer = await peerConnection.createOffer({ iceRestart: true });
       await peerConnection.setLocalDescription(offer);
+      updateLocalFingerprint(peerConnection.localDescription?.sdp ?? offer.sdp);
       sendMessage({
         type: "signal",
         roomId: roomId,
@@ -77,12 +109,19 @@ export function useWebRTC(
     }
   };
 
-  // 1. Initialize PeerConnection
   useEffect(() => {
+    setLocalFingerprint(null);
+    setRemoteFingerprint(null);
+
     const peerConnection = new RTCPeerConnection({
       iceServers: [
         {
-          urls: [`turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`],
+          urls: [
+            `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=udp`,
+            `turn:${import.meta.env.VITE_TURN_SERVER}:3478?transport=tcp`,
+            `turns:${import.meta.env.VITE_TURN_SERVER}:5349?transport=tcp`,
+            `turns:${import.meta.env.VITE_TURN_SERVER}:443?transport=tcp`,
+          ],
           username: import.meta.env.VITE_TURN_USERNAME,
           credential: import.meta.env.VITE_TURN_PASSWORD,
         },
@@ -102,11 +141,8 @@ export function useWebRTC(
       }
     };
 
-    peerConnection.oniceconnectionstatechange = () => {
-    };
-
-    peerConnection.onicegatheringstatechange = () => {
-    };
+    peerConnection.oniceconnectionstatechange = () => {};
+    peerConnection.onicegatheringstatechange = () => {};
 
     peerConnection.ontrack = (event) => {
       setRemoteStream(event.streams[0]);
@@ -143,6 +179,8 @@ export function useWebRTC(
 
     return () => {
       clearDisconnectTimer();
+      localStreamRef.current?.getTracks().forEach((track) => track.stop());
+      localStreamRef.current = null;
       peerConnection.close();
     };
   }, [roomId, sendMessage]);
@@ -152,7 +190,6 @@ export function useWebRTC(
     messagesRef.current = messages;
   }, [messages]);
 
-  // 2. Process Messages Safely
   useEffect(() => {
     const processMessages = async () => {
       if (isProcessingRef.current) return;
@@ -164,14 +201,21 @@ export function useWebRTC(
 
           if (message.type === "role") {
             const assignedRole = message.data.role;
+            const negotiatedMode = resolveCallMode(message.data.mode ?? mode);
             myRoleRef.current = assignedRole;
 
             const stream = await navigator.mediaDevices.getUserMedia({
-              video: true,
-              audio: true,
+              video: negotiatedMode === "video",
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
             });
-            stream.getVideoTracks().forEach((track) => (track.enabled = false));
             stream.getAudioTracks().forEach((track) => (track.enabled = false));
+            if (negotiatedMode === "video") {
+              stream.getVideoTracks().forEach((track) => (track.enabled = false));
+            }
             setLocalStream(stream);
             stream.getTracks().forEach((track) => {
               peerConnectionRef.current?.addTrack(track, stream);
@@ -216,12 +260,16 @@ export function useWebRTC(
           ) {
             hasReceivedOfferRef.current = true;
             isRestartingIceRef.current = false;
+            updateRemoteFingerprint(message.data.offer?.sdp);
             await peerConnectionRef.current?.setRemoteDescription(
               new RTCSessionDescription(message.data.offer),
             );
-            flushIceQueue();
+            await flushIceQueue();
             const answer = await peerConnectionRef.current?.createAnswer();
             await peerConnectionRef.current?.setLocalDescription(answer);
+            updateLocalFingerprint(
+              peerConnectionRef.current?.localDescription?.sdp ?? answer?.sdp,
+            );
             sendMessage({
               type: "signal",
               roomId: roomId,
@@ -232,10 +280,11 @@ export function useWebRTC(
             message.data.type === "answer"
           ) {
             isRestartingIceRef.current = false;
+            updateRemoteFingerprint(message.data.answer?.sdp);
             await peerConnectionRef.current?.setRemoteDescription(
               new RTCSessionDescription(message.data.answer),
             );
-            flushIceQueue();
+            await flushIceQueue();
           } else if (
             message.type === "signal" &&
             message.data.type === "ice-candidate"
@@ -254,13 +303,13 @@ export function useWebRTC(
       } finally {
         isProcessingRef.current = false;
         if (messageIndexRef.current < messagesRef.current.length) {
-          processMessages();
+          void processMessages();
         }
       }
     };
 
-    processMessages();
-  }, [messages, roomId, sendMessage]);
+    void processMessages();
+  }, [messages, mode, roomId, sendMessage]);
 
   const flushIceQueue = async () => {
     for (const candidate of pendingCandidatesRef.current) {
@@ -268,8 +317,8 @@ export function useWebRTC(
         await peerConnectionRef.current?.addIceCandidate(
           new RTCIceCandidate(candidate),
         );
-      } catch (e) {
-        console.error("Error adding queued ICE candidate", e);
+      } catch (error) {
+        console.error("Error adding queued ICE candidate", error);
       }
     }
     pendingCandidatesRef.current = [];
@@ -280,6 +329,9 @@ export function useWebRTC(
       if (myRoleRef.current === "initiator" && !hasCreatedOfferRef.current) {
         const offer = await peerConnectionRef.current?.createOffer();
         await peerConnectionRef.current?.setLocalDescription(offer);
+        updateLocalFingerprint(
+          peerConnectionRef.current?.localDescription?.sdp ?? offer?.sdp,
+        );
         sendMessage({
           type: "signal",
           roomId: roomId,
@@ -293,10 +345,13 @@ export function useWebRTC(
   };
 
   const stopCall = () => {
-    localStream?.getTracks().forEach((track) => track.stop());
+    localStreamRef.current?.getTracks().forEach((track) => track.stop());
+    localStreamRef.current = null;
     peerConnectionRef.current?.close();
     setLocalStream(null);
     setRemoteStream(null);
+    setLocalFingerprint(null);
+    setRemoteFingerprint(null);
   };
 
   return {
@@ -306,5 +361,7 @@ export function useWebRTC(
     startCall,
     stopCall,
     peerConnection: peerConnectionRef.current,
+    localFingerprint,
+    remoteFingerprint,
   };
 }

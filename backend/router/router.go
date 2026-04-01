@@ -46,7 +46,8 @@ var upgrader = websocket.Upgrader{
 }
 
 func SetupRouter() *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
 	go roomManager.CleanupRooms() // Start the cleanup goroutine
 	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
 	router.GET("/api/i18n/:language", handlePublicTranslation)
@@ -69,6 +70,7 @@ func handlePublicTranslation(c *gin.Context) {
 func handleRoomStatus(c *gin.Context) {
 	roomId := c.Param("roomId")
 	occupants := roomManager.GetRoomOccupancy(roomId)
+	mode := roomManager.GetRoomMode(roomId)
 	state := "empty"
 
 	switch {
@@ -79,8 +81,8 @@ func handleRoomStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"roomId":    roomId,
 		"occupants": occupants,
+		"mode":      mode,
 		"state":     state,
 	})
 }
@@ -99,7 +101,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if currentRoomId != "" {
 			roomManager.LeaveRoom(currentRoomId, conn)
-			log.Printf("Client disconnected from room %s", currentRoomId)
+			log.Printf("client disconnected from active room")
 		}
 	}()
 
@@ -116,6 +118,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		case "join":
 			var joinData struct {
 				ClientId string `json:"clientId"`
+				Mode     string `json:"mode"`
 			}
 			if err := json.Unmarshal(msg.Data, &joinData); err != nil {
 				conn.WriteJSON(gin.H{"error": "invalid join data"})
@@ -124,14 +127,14 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 			currentRoomId = msg.RoomId
 			// JoinRoom handles creation, locking, AND role assignment
-			role, err := roomManager.JoinRoom(msg.RoomId, joinData.ClientId, conn)
+			joinResult, err := roomManager.JoinRoom(msg.RoomId, joinData.ClientId, joinData.Mode, conn)
 			if err != nil {
 				conn.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
 			roleMsg := map[string]any{
 				"type": "role",
-				"data": map[string]string{"role": role},
+				"data": map[string]string{"role": joinResult.Role, "mode": joinResult.Mode},
 			}
 			conn.WriteJSON(roleMsg)
 		case "signal":
@@ -151,7 +154,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			// Then permanently delete the room
 			roomManager.DeleteRoom(msg.RoomId)
 			currentRoomId = ""
-			log.Printf("Call ended in room %s", msg.RoomId)
+			log.Printf("call ended and room closed")
 			return
 		default:
 			log.Printf("Unknown message type: %s", msg.Type)

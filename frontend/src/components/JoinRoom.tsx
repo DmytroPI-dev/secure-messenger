@@ -2,8 +2,10 @@ import { Box, Button, Heading, HStack, Spinner, Stack, Text } from "@chakra-ui/r
 import React, { useEffect, useState } from "react";
 import doorImage from "../assets/door-svgrepo-com.svg";
 
+export type CallMode = "audio" | "video";
+
 interface JoinRoomProps {
-  onJoinRoom: (roomId: string) => void;
+  onJoinRoom: (roomId: string, mode: CallMode) => void;
   roomId: string;
   stationName: string;
   dateCode: string;
@@ -13,6 +15,7 @@ interface JoinRoomProps {
 
 interface RoomStatus {
   occupants: number;
+  mode?: CallMode;
 }
 
 export const JoinRoom: React.FC<JoinRoomProps> = ({
@@ -24,12 +27,15 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({
   onCancel,
 }) => {
   const [isOpening, setIsOpening] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<CallMode>("audio");
   const [status, setStatus] = useState<RoomStatus>({ occupants: 0 });
   const [isStatusLoading, setIsStatusLoading] = useState(true);
   const isPanel = layout === "panel";
   const isRoomEmpty = status.occupants === 0;
   const isPeerWaiting = status.occupants === 1;
   const isRoomFull = status.occupants >= 2;
+  const lockedMode = status.mode === "video" ? "video" : status.mode === "audio" ? "audio" : null;
+  const isModeLocked = isPeerWaiting && lockedMode !== null;
 
   useEffect(() => {
     let isDisposed = false;
@@ -45,6 +51,9 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({
         const nextStatus = (await response.json()) as RoomStatus;
         if (!isDisposed) {
           setStatus(nextStatus);
+          if (nextStatus.mode === "audio" || nextStatus.mode === "video") {
+            setSelectedMode(nextStatus.mode);
+          }
         }
       } catch {
         // Keep the hidden flow quiet on status lookup failures.
@@ -114,6 +123,45 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({
             <Text>Checking room status</Text>
           </HStack>
         ) : null}
+
+        <Stack gap={3}>
+          <Text color="whiteAlpha.900" fontSize="0.88rem" fontWeight="600" letterSpacing="0.08em" textTransform="uppercase">
+            Call mode
+          </Text>
+          <HStack gap={3} flexWrap="wrap">
+            <Button
+              type="button"
+              bg={selectedMode === "audio" ? "rgba(191, 143, 73, 0.22)" : "rgba(255,255,255,0.04)"}
+              color={selectedMode === "audio" ? "#fff4dc" : "whiteAlpha.900"}
+              border="1px solid"
+              borderColor={selectedMode === "audio" ? "rgba(250, 214, 160, 0.4)" : "rgba(250, 214, 160, 0.22)"}
+              _hover={{ bg: selectedMode === "audio" ? "rgba(191, 143, 73, 0.28)" : "rgba(255,255,255,0.08)" }}
+              disabled={isModeLocked}
+              _disabled={{ opacity: 0.72, cursor: "not-allowed" }}
+              onClick={() => setSelectedMode("audio")}
+            >
+              Audio only
+            </Button>
+            <Button
+              type="button"
+              bg={selectedMode === "video" ? "rgba(191, 143, 73, 0.22)" : "rgba(255,255,255,0.04)"}
+              color={selectedMode === "video" ? "#fff4dc" : "whiteAlpha.900"}
+              border="1px solid"
+              borderColor={selectedMode === "video" ? "rgba(250, 214, 160, 0.4)" : "rgba(250, 214, 160, 0.22)"}
+              _hover={{ bg: selectedMode === "video" ? "rgba(191, 143, 73, 0.28)" : "rgba(255,255,255,0.08)" }}
+              disabled={isModeLocked}
+              _disabled={{ opacity: 0.72, cursor: "not-allowed" }}
+              onClick={() => setSelectedMode("video")}
+            >
+              Video
+            </Button>
+          </HStack>
+          {isModeLocked ? (
+            <Text color="whiteAlpha.800" fontSize="sm">
+              First peer locked this room to {lockedMode === "video" ? "video" : "audio only"}.
+            </Text>
+          ) : null}
+        </Stack>
       </Stack>
 
       <Button
@@ -128,7 +176,7 @@ export const JoinRoom: React.FC<JoinRoomProps> = ({
         onClick={async () => {
           setIsOpening(true);
           try {
-            onJoinRoom(roomId);
+            onJoinRoom(roomId, selectedMode);
           } finally {
             setIsOpening(false);
           }

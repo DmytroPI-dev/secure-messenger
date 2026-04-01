@@ -394,14 +394,23 @@ export function BlackSeaWeatherSite({
                   </Box>
                 );
               })}
-              <ColorModeButton className="theme-toggle" />
+              <ColorModeButton
+                className="theme-toggle"
+                display={{ base: "none", md: "inline-flex" }}
+              />
             </HStack>
           </HStack>
 
           <Box className="weather-hero">
             <Stack gap={6}>
               <Stack gap={3} maxW="42rem">
-                <Heading as="h1" className="weather-title">
+                <HStack align="flex-start" gap={3} display={{ base: "flex", md: "none" }}>
+                  <ColorModeButton className="theme-toggle" flexShrink={0} mt={1} />
+                  <Heading as="h1" className="weather-title">
+                    {t("weather.heroTitle")}
+                  </Heading>
+                </HStack>
+                <Heading as="h1" className="weather-title" display={{ base: "none", md: "block" }}>
                   {t("weather.heroTitle")}
                 </Heading>
                 <Text className="weather-description">
