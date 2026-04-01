@@ -7,6 +7,9 @@ export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   server: {
     proxy: {
+      "/api": {
+        target: "http://localhost:8080",
+      },
       "/ws": {
         target: "ws://localhost:8080", // Your Go backend
         ws: true, // Enable WebSocket proxying

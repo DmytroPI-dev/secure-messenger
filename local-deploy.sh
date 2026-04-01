@@ -44,6 +44,9 @@ echo "Building frontend..."
 pushd frontend >/dev/null
 npm ci
 npm run build
+# Video assets under public/media are managed manually on the VM and are
+# preserved server-side, so exclude them from deploy artifacts.
+rm -rf dist/media
 cp -r dist/. ../dist-temp/
 popd >/dev/null
 
@@ -67,7 +70,7 @@ systemctl daemon-reload
 
 install -m 0755 "$REMOTE_TMP/messenger-backend" "$REMOTE_BACKEND_PATH"
 
-find "$REMOTE_FRONTEND_PATH" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+find "$REMOTE_FRONTEND_PATH" -mindepth 1 -maxdepth 1 ! -name media -exec rm -rf {} +
 cp -r "$REMOTE_TMP"/. "$REMOTE_FRONTEND_PATH"/
 rm -f "$REMOTE_FRONTEND_PATH/messenger-backend"
 rm -rf "$REMOTE_TMP"

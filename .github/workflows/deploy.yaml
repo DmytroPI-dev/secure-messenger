@@ -32,6 +32,9 @@ jobs:
           cd frontend
           npm ci
           npm run build
+          # Video assets are managed manually on the VM, so do not upload them
+          # as part of CI deploy artifacts.
+          rm -rf dist/media
           # Move build to root for easier SCP transfer
           mv dist ${{ github.workspace }}/frontend-dist
       # --- DEPLOYMENT ---
@@ -71,7 +74,7 @@ jobs:
 
             # Update Frontend
             sudo mkdir -p /var/www/messenger
-            sudo find /var/www/messenger -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+            sudo find /var/www/messenger -mindepth 1 -maxdepth 1 ! -name media -exec rm -rf {} +
             sudo cp -r "$REMOTE_TMP"/frontend-dist/. /var/www/messenger/
 
             # Clean up temp

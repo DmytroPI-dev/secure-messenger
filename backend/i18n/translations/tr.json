@@ -1,0 +1,246 @@
+{
+  "app": {
+    "title": "Karadeniz Kıyı Tahmini"
+  },
+  "language": {
+    "label": "Dil",
+    "en": "English",
+    "ru": "Русский",
+    "tr": "Türkçe"
+  },
+  "weather": {
+    "kicker": "Karadeniz Kıyı Tahmini",
+    "heroTitle": "Deniz hava durumu, kıyı rüzgarları ve günlük sahil koşulları.",
+    "heroDescription": "Karadeniz çevresindeki limanlar, plajlar, marinalar ve sahil yolculukları için bölgesel tahminler.",
+    "searchLabel": "Kıyı istasyonu ara",
+    "searchPlaceholder": "Örn: Soçi, Varna, Batum, Sinop...",
+    "noStationMatchTitle": "İstasyon bulunamadı",
+    "noStationMatchBody": "Şehir adını veya ülkeyi değiştirerek tekrar deneyin.",
+    "selectedStation": "Seçili istasyon",
+    "currentConditions": "Mevcut durum",
+    "updatedFeed": "Bölgesel tahmin akışlarından güncellendi.",
+    "issuedAt": "Yayın: {{time}} {{timezone}}",
+    "loading": "Sahil tahmini yükleniyor...",
+    "errors": {
+      "forecastUnavailable": "Tahmin verisine ulaşılamıyor.",
+      "invalidResponse": "Tahmin servisinden geçersiz yanıt alındı.",
+      "loadFailed": "Hava durumu verileri yüklenemedi."
+    },
+    "metrics": {
+      "air": "Hava",
+      "sea": "Deniz",
+      "wind": "Rüzgar",
+      "conditions": "Durum",
+      "feelsLike": "Hissedilen",
+      "humidity": "Nem",
+      "waveHeight": "Dalga yüksekliği",
+      "wavePeriod": "Dalga periyodu",
+      "waveDirection": "Dalga yönü"
+    },
+    "sevenDayTitle": "7 günlük sahil tahmini",
+    "sunrise": "Gündoğumu {{time}}",
+    "sunset": "Günbatımı {{time}}",
+    "hourlyKicker": "Saatlik sahil durumu",
+    "hourlyTitle": "Rüzgar ve deniz trendi",
+    "hourlyEmpty": "Saatlik deniz durumu verileri burada gösterilecek.",
+    "regionalNote": "Bölgesel not",
+    "regionalNoteTitle": "Kıyı planlaması için ipuçları",
+    "regionalNoteBody": "Rüzgar, dalga ve yağış değişimlerini birlikte değerlendirin. Sabah sakin olan deniz, öğleden sonra rüzgarın artmasıyla aniden bozabilir.",
+    "dataSource": "Veri kaynağı: Seçilen sahil istasyonu için Open-Meteo tahmin ve deniz akışları.",
+    "rainChance": "Yağış {{value}}%",
+    "windSpeed": "Rüzgar {{value}} km/s",
+    "locations": {
+      "odessa": {
+        "name": "Odessa",
+        "country": "Ukrayna",
+        "summary": "Kıyı seyahatleri, liman rüzgarları ve sörf koşulları için hava durumu."
+      },
+      "chornomorsk": {
+        "name": "Chornomorsk",
+        "country": "Ukrayna",
+        "summary": "Liman trafiği, kıyı rüzgarı ve kısa sahil çıkışları için operasyonel tahmin."
+      },
+      "yuzhne": {
+        "name": "Yuzhne",
+        "country": "Ukrayna",
+        "summary": "Liman trafiği, kıyı rüzgarı ve kısa sahil çıkışları için operasyonel tahmin."
+      },
+      "skadovsk": {
+        "name": "Skadovsk",
+        "country": "Ukrayna",
+        "summary": "Liman trafiği, kıyı rüzgarı ve kısa sahil çıkışları için operasyonel tahmin."
+      },
+      "sulina": {
+        "name": "Sulina",
+        "country": "Romanya",
+        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+      },
+      "constanta": {
+        "name": "Köstence",
+        "country": "Romanya",
+        "summary": "Kıyıdaki hava değişimleri, görüş mesafesi ve deniz durumu için denizcilik özeti."
+      },
+      "mangalia": {
+        "name": "Mangalya",
+        "country": "Romanya",
+        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+      },
+      "balchik": {
+        "name": "Balçık",
+        "country": "Bulgaristan",
+        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+      },
+      "varna": {
+        "name": "Varna",
+        "country": "Bulgaristan",
+        "summary": "Rüzgar aralıkları, sağanak yağışlar ve liman sıcaklık değişimleri için günlük sahil takibi."
+      },
+      "nessebar": {
+        "name": "Nesebar",
+        "country": "Bulgaristan",
+        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+      },
+      "burgas": {
+        "name": "Burgaz",
+        "country": "Bulgaristan",
+        "summary": "Marina koşulları, dalga zamanlaması ve akşam istikrarına odaklanan tahmin."
+      },
+      "sozopol": {
+        "name": "Sozopol",
+        "country": "Bulgaristan",
+        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+      },
+      "tsarevo": {
+        "name": "Tsarevo",
+        "country": "Bulgaristan",
+        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+      },
+      "igneada": {
+        "name": "İğneada",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "sile": {
+        "name": "Şile",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "zonguldak": {
+        "name": "Zonguldak",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "amasra": {
+        "name": "Amasra",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "sinop": {
+        "name": "Sinop",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar hamleleri ve kıyı yağış bantları için kuzey kıyısı görünümü."
+      },
+      "samsun": {
+        "name": "Samsun",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "ordu": {
+        "name": "Ordu",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "giresun": {
+        "name": "Giresun",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "trabzon": {
+        "name": "Trabzon",
+        "country": "Türkiye",
+        "summary": "Balıkçılık seferleri, dalga boyu kontrolleri ve bulutlanma değişiklikleri için faydalıdır."
+      },
+      "rize": {
+        "name": "Rize",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "hopa": {
+        "name": "Hopa",
+        "country": "Türkiye",
+        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+      },
+      "batumi": {
+        "name": "Batum",
+        "country": "Gürcistan",
+        "summary": "Nemli hava hareketleri, deniz durumu ve kısa vadeli tahminler için sahil rehberi."
+      },
+      "kobuleti": {
+        "name": "Kobuleti",
+        "country": "Gürcistan",
+        "summary": "Nemli hava geçişleri, dalga durumu ve kısa vadeli kıyı değişimleri için deniz rehberi."
+      },
+      "poti": {
+        "name": "Poti",
+        "country": "Gürcistan",
+        "summary": "Nemli hava geçişleri, dalga durumu ve kısa vadeli kıyı değişimleri için deniz rehberi."
+      },
+      "sochi": {
+        "name": "Soçi",
+        "country": "Rusya",
+        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+      },
+      "tuapse": {
+        "name": "Tuapse",
+        "country": "Rusya",
+        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+      },
+      "gelendzhik": {
+        "name": "Gelencik",
+        "country": "Rusya",
+        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+      },
+      "novorossiysk": {
+        "name": "Novorossiysk",
+        "country": "Rusya",
+        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+      },
+      "anapa": {
+        "name": "Anapa",
+        "country": "Rusya",
+        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+      }
+    }
+  },
+  "weatherCodes": {
+    "0": "Açık",
+    "1": "Çoğunlukla açık",
+    "2": "Parçalı bulutlu",
+    "3": "Kapalı",
+    "45": "Sis",
+    "48": "Kırağılı sis",
+    "51": "Hafif çisenti",
+    "53": "Çisenti",
+    "55": "Yoğun çisenti",
+    "56": "Dondurucu çisenti",
+    "57": "Yoğun dondurucu çisenti",
+    "61": "Hafif yağmur",
+    "63": "Yağmur",
+    "65": "Kuvvetli yağmur",
+    "66": "Dondurucu yağmur",
+    "67": "Kuvvetli dondurucu yağmur",
+    "71": "Hafif kar",
+    "73": "Kar",
+    "75": "Yoğun kar",
+    "77": "Kar tanecikleri",
+    "80": "Sağanak yağış",
+    "81": "Kuvvetli sağanak",
+    "82": "Şiddetli sağanak",
+    "85": "Kar sağanağı",
+    "86": "Kuvvetli kar sağanağı",
+    "95": "Gök gürültülü fırtına",
+    "96": "Dolulu fırtına",
+    "99": "Şiddetli dolulu fırtına",
+    "default": "Değişken"
+  }
+}

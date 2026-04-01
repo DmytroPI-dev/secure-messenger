@@ -12,7 +12,7 @@ Complete step-by-step guide for deploying the secure messenger on a VPS that has
 | Public IP | `<YOUR_VPS_IP>` |
 | App domain | `<YOUR_APP_DOMAIN>` |
 | TURN domain | `<YOUR_TURN_DOMAIN>` |
-| SSH key | `~/.ssh/black_sea_key` |
+| SSH key | `~/.ssh/your-key` |
 | TURN user | `<YOUR_TURN_USERNAME>` |
 | TURN password | `<YOUR_TURN_PASSWORD>` |
 
@@ -169,7 +169,7 @@ stream {
 }
 ```
 
-Create the site config at `/etc/nginx/sites-available/weather`:
+Create the site config at `/etc/nginx/sites-available/<YOUR_APP_DOMAIN>`:
 
 ```nginx
 server {
@@ -178,7 +178,7 @@ server {
 
     # For certbot HTTP-01 renewal
     location /.well-known/acme-challenge/ {
-        root /var/www/weather;
+        root /var/www/<YOUR_APP_DOMAIN>;
     }
 
     location / {
@@ -194,7 +194,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/<YOUR_APP_DOMAIN>/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
 
-    root /var/www/weather;
+    root /var/www/<YOUR_APP_DOMAIN>;
     index index.html;
 
     # WebSocket proxy for signaling
@@ -223,7 +223,7 @@ server {
 Enable and test:
 
 ```bash
-ln -sf /etc/nginx/sites-available/weather /etc/nginx/sites-enabled/weather
+ln -sf /etc/nginx/sites-available/<YOUR_APP_DOMAIN> /etc/nginx/sites-enabled/<YOUR_APP_DOMAIN>
 nginx -t
 systemctl enable nginx
 systemctl restart nginx
@@ -413,6 +413,26 @@ bash local-deploy.sh
 3. Upload both artifacts to the VPS via SCP
 4. Stop the backend, swap the binaries/files, start the backend, reload nginx
 5. Verify the backend health endpoint
+
+### Manual video assets
+
+The coastal hero videos under `frontend/public/media/optimized/` are intentionally not stored in Git to avoid bloating the repository. That means:
+
+1. GitHub Actions deploys will not have those files unless you upload them to the VM manually.
+2. The server must keep them under the frontend web root at `media/optimized/`.
+3. Both deployment paths intentionally remove `dist/media` before upload, so video assets are never transferred automatically.
+
+Upload them to the VPS after the initial deployment:
+
+```bash
+# Example for the GitHub Actions target path
+ssh <YOUR_USER>@<YOUR_HOST> 'mkdir -p /var/www/messenger/media/optimized'
+scp frontend/public/media/optimized/* <YOUR_USER>@<YOUR_HOST>:/var/www/messenger/media/optimized/
+```
+
+If you deploy with `local-deploy.sh`, use the configured `REMOTE_FRONTEND_PATH` instead of `/var/www/messenger` when choosing the remote upload path.
+
+Both deployment paths preserve the existing `media/` directory on the server, so manually uploaded video assets are not removed by later deploys.
 
 ### TURN credentials in the frontend
 

@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"log"
+	translations "messenger-backend/i18n"
 	"messenger-backend/room"
 	"net/http"
 	"os"
@@ -48,8 +49,40 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	go roomManager.CleanupRooms() // Start the cleanup goroutine
 	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+	router.GET("/api/i18n/:language", handlePublicTranslation)
+	router.GET("/api/rooms/:roomId/status", handleRoomStatus)
 	router.GET("/ws", func(c *gin.Context) { handleWebSocket(c.Writer, c.Request) })
 	return router
+}
+
+func handlePublicTranslation(c *gin.Context) {
+	payload, err := translations.LoadPublicTranslation(c.Param("language"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "translation unavailable"})
+		return
+	}
+
+	c.Header("Cache-Control", "public, max-age=3600")
+	c.Data(http.StatusOK, "application/json; charset=utf-8", payload)
+}
+
+func handleRoomStatus(c *gin.Context) {
+	roomId := c.Param("roomId")
+	occupants := roomManager.GetRoomOccupancy(roomId)
+	state := "empty"
+
+	switch {
+	case occupants == 1:
+		state = "waiting"
+	case occupants >= 2:
+		state = "full"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"roomId":    roomId,
+		"occupants": occupants,
+		"state":     state,
+	})
 }
 
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {

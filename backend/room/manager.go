@@ -2,10 +2,11 @@ package room
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const roomDeleteDelay = 30 * time.Second
@@ -140,6 +141,18 @@ func (roomManager *RoomManager) GetRoom(roomId string) *Room {
 	roomManager.Lock()
 	defer roomManager.Unlock()
 	return roomManager.Rooms[roomId]
+}
+
+func (roomManager *RoomManager) GetRoomOccupancy(roomId string) int {
+	room := roomManager.GetRoom(roomId)
+	if room == nil {
+		return 0
+	}
+
+	room.Lock()
+	defer room.Unlock()
+	room.cleanDeadConnections()
+	return len(room.Connection)
 }
 
 // Broadcast sends a message to all connections in the specified room except the sender connection.

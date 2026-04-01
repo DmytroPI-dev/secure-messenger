@@ -1,0 +1,246 @@
+{
+  "app": {
+    "title": "Black Sea Coastal Outlook"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ru": "Русский",
+    "tr": "Türkçe"
+  },
+  "weather": {
+    "kicker": "Black Sea Coastal Outlook",
+    "heroTitle": "Marine weather, shoreline wind, and daily coastal conditions.",
+    "heroDescription": "Regional forecasts for ports, beaches, marinas, and shoreline travel around the Black Sea.",
+    "searchLabel": "Search coastal station",
+    "searchPlaceholder": "Try Sochi, Varna, Batumi, Sinop...",
+    "noStationMatchTitle": "No station match",
+    "noStationMatchBody": "Refine the city name or search by country.",
+    "selectedStation": "Selected station",
+    "currentConditions": "Current conditions",
+    "updatedFeed": "Updated from regional forecast feeds.",
+    "issuedAt": "Issued {{time}} {{timezone}}",
+    "loading": "Loading coastal forecast...",
+    "errors": {
+      "forecastUnavailable": "Forecast feed is unavailable.",
+      "invalidResponse": "Forecast feed returned an invalid response.",
+      "loadFailed": "Weather data could not be loaded."
+    },
+    "metrics": {
+      "air": "Air",
+      "sea": "Sea",
+      "wind": "Wind",
+      "conditions": "Conditions",
+      "feelsLike": "Feels like",
+      "humidity": "Humidity",
+      "waveHeight": "Wave height",
+      "wavePeriod": "Wave period",
+      "waveDirection": "Wave direction"
+    },
+    "sevenDayTitle": "Seven-day shoreline outlook",
+    "sunrise": "Sunrise {{time}}",
+    "sunset": "Sunset {{time}}",
+    "hourlyKicker": "Hourly coast watch",
+    "hourlyTitle": "Wind and sea trend",
+    "hourlyEmpty": "Hourly sea-state data will appear here.",
+    "regionalNote": "Regional note",
+    "regionalNoteTitle": "Practical shoreline planning",
+    "regionalNoteBody": "Use wind, wave, and rain shifts together. Calm morning water can still deteriorate quickly once afternoon gust bands move inland.",
+    "dataSource": "Data source: Open-Meteo forecast and marine feeds for the selected coastal station.",
+    "rainChance": "Rain {{value}}%",
+    "windSpeed": "Wind {{value}} km/h",
+    "locations": {
+      "odessa": {
+        "name": "Odesa",
+        "country": "Ukraine",
+        "summary": "Port-facing outlook for coastal travel, harbor wind, and surf conditions."
+      },
+      "chornomorsk": {
+        "name": "Chornomorsk",
+        "country": "Ukraine",
+        "summary": "Operational forecast for port traffic, nearshore wind, and short coastal departures."
+      },
+      "yuzhne": {
+        "name": "Yuzhne",
+        "country": "Ukraine",
+        "summary": "Operational forecast for port traffic, nearshore wind, and short coastal departures."
+      },
+      "skadovsk": {
+        "name": "Skadovsk",
+        "country": "Ukraine",
+        "summary": "Operational forecast for port traffic, nearshore wind, and short coastal departures."
+      },
+      "sulina": {
+        "name": "Sulina",
+        "country": "Romania",
+        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+      },
+      "constanta": {
+        "name": "Constanta",
+        "country": "Romania",
+        "summary": "Marine brief for shoreline weather shifts, visibility, and sea state."
+      },
+      "mangalia": {
+        "name": "Mangalia",
+        "country": "Romania",
+        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+      },
+      "balchik": {
+        "name": "Balchik",
+        "country": "Bulgaria",
+        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+      },
+      "varna": {
+        "name": "Varna",
+        "country": "Bulgaria",
+        "summary": "Daily coast watch for wind windows, showers, and harbor temperature swings."
+      },
+      "nessebar": {
+        "name": "Nessebar",
+        "country": "Bulgaria",
+        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+      },
+      "burgas": {
+        "name": "Burgas",
+        "country": "Bulgaria",
+        "summary": "Forecast focused on marina conditions, wave timing, and evening stability."
+      },
+      "sozopol": {
+        "name": "Sozopol",
+        "country": "Bulgaria",
+        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+      },
+      "tsarevo": {
+        "name": "Tsarevo",
+        "country": "Bulgaria",
+        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+      },
+      "igneada": {
+        "name": "Igneada",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "sile": {
+        "name": "Sile",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "zonguldak": {
+        "name": "Zonguldak",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "amasra": {
+        "name": "Amasra",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "sinop": {
+        "name": "Sinop",
+        "country": "Turkey",
+        "summary": "Northern coast watch for sea temperature, gusts, and coastal rain bands."
+      },
+      "samsun": {
+        "name": "Samsun",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "ordu": {
+        "name": "Ordu",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "giresun": {
+        "name": "Giresun",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "trabzon": {
+        "name": "Trabzon",
+        "country": "Turkey",
+        "summary": "Useful for fishing departures, wave height checks, and cloud cover changes."
+      },
+      "rize": {
+        "name": "Rize",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "hopa": {
+        "name": "Hopa",
+        "country": "Turkey",
+        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+      },
+      "batumi": {
+        "name": "Batumi",
+        "country": "Georgia",
+        "summary": "Coastal weather desk for humid air shifts, sea state, and short-range outlooks."
+      },
+      "kobuleti": {
+        "name": "Kobuleti",
+        "country": "Georgia",
+        "summary": "Marine desk for humid air shifts, wave state, and short-range coastal changes."
+      },
+      "poti": {
+        "name": "Poti",
+        "country": "Georgia",
+        "summary": "Marine desk for humid air shifts, wave state, and short-range coastal changes."
+      },
+      "sochi": {
+        "name": "Sochi",
+        "country": "Russia",
+        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+      },
+      "tuapse": {
+        "name": "Tuapse",
+        "country": "Russia",
+        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+      },
+      "gelendzhik": {
+        "name": "Gelendzhik",
+        "country": "Russia",
+        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+      },
+      "novorossiysk": {
+        "name": "Novorossiysk",
+        "country": "Russia",
+        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+      },
+      "anapa": {
+        "name": "Anapa",
+        "country": "Russia",
+        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+      }
+    }
+  },
+  "weatherCodes": {
+    "0": "Clear",
+    "1": "Mostly clear",
+    "2": "Partly cloudy",
+    "3": "Overcast",
+    "45": "Fog",
+    "48": "Rime fog",
+    "51": "Light drizzle",
+    "53": "Drizzle",
+    "55": "Dense drizzle",
+    "56": "Freezing drizzle",
+    "57": "Heavy freezing drizzle",
+    "61": "Light rain",
+    "63": "Rain",
+    "65": "Heavy rain",
+    "66": "Freezing rain",
+    "67": "Heavy freezing rain",
+    "71": "Light snow",
+    "73": "Snow",
+    "75": "Heavy snow",
+    "77": "Snow grains",
+    "80": "Rain showers",
+    "81": "Heavy showers",
+    "82": "Violent showers",
+    "85": "Snow showers",
+    "86": "Heavy snow showers",
+    "95": "Thunderstorm",
+    "96": "Storm with hail",
+    "99": "Severe storm with hail",
+    "default": "Changeable"
+  }
+}

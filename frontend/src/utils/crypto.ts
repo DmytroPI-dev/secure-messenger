@@ -1,8 +1,24 @@
+export function normalizeSecretPhrase(phrase: string): string {
+  return phrase
+    .trim()
+    .toLocaleLowerCase()
+    .normalize("NFKC")
+    .replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
+export function normalizeCaseSensitiveSecretPhrase(phrase: string): string {
+  return phrase
+    .trim()
+    .normalize("NFKC")
+    .replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
 export async function hashPhrase(phrase: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(phrase);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const normalizedPhrase = normalizeCaseSensitiveSecretPhrase(phrase);
+  const data = encoder.encode(normalizedPhrase);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return hashHex.slice(0, 10);
 }

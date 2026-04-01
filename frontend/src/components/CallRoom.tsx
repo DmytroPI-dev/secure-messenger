@@ -28,7 +28,7 @@ interface CallRoomProps {
 }
 
 export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
-  const { messages, isConnected, error, sendMessage } = useWebSocket(roomId);
+  const { messages, isConnected, sendMessage } = useWebSocket(roomId);
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   const [maxBitrate, setMaxBitrate] = useState([2500]);
@@ -169,10 +169,9 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
         hasStoppedRef.current = true;
         stopCall();
       }
-      alert("Peer has ended the call.");
       onEndCall();
     }
-  }, [messages]);
+  }, [messages, onEndCall, stopCall]);
 
   return isMobile ? (
     <Box
@@ -279,8 +278,8 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
           backdropFilter="blur(10px)"
         >
           <HStack gap={3} fontSize="sm" color="white">
-            {remoteStatus.audioMuted && <Text>🔇 Peer Muted</Text>}
-            {remoteStatus.videoMuted && <Text>📵 Peer Video Off</Text>}
+            {remoteStatus.audioMuted && <Text>🔇 Peer muted</Text>}
+            {remoteStatus.videoMuted && <Text>📵 Peer video off</Text>}
           </HStack>
         </Box>
       )}
@@ -507,11 +506,6 @@ export const CallRoom: React.FC<CallRoomProps> = ({ roomId, onEndCall }) => {
           <Spinner size="xl" />
           <Text mt={4}>Establishing connection...</Text>
         </VStack>
-      )}
-      {error && (
-        <Box p={4} bg="red.500" borderRadius="md" mt={4}>
-          <Text fontWeight="bold">Error: {error}</Text>
-        </Box>
       )}
     </VStack>
   );
