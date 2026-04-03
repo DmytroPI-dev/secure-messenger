@@ -4,12 +4,14 @@ import {
   Field,
   Heading,
   HStack,
+  IconButton,
   Input,
   Spinner,
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MdClose, MdInfoOutline } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import {
   type BlackSeaLocation,
@@ -22,20 +24,21 @@ import {
 } from "@/i18n/resources";
 import { changeAppLanguage } from "@/i18n";
 import { ColorModeButton } from "@/components/ui/color-mode";
+import { ToggleTip } from "@/components/ui/toggle-tip";
 import {
   hashPhrase,
-  normalizeCaseSensitiveSecretPhrase,
-  normalizeSecretPhrase,
+  normalizeAccessPhrase,
+  normalizeExactAccessPhrase,
 } from "@/utils/crypto";
 
-export interface SecretAccessRequest {
+export interface AccessRequest {
   roomId: string;
   stationName: string;
   dateCode: string;
 }
 
 interface BlackSeaWeatherSiteProps {
-  onUnlockRequest: (access: SecretAccessRequest) => void;
+  onUnlockRequest: (access: AccessRequest) => void;
 }
 
 const blackSeaLocations: BlackSeaLocation[] = [
@@ -220,19 +223,32 @@ export function BlackSeaWeatherSite({
     buildRandomVideoQueue(),
   );
   const [heroVideoIndex, setHeroVideoIndex] = useState(0);
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const activeLanguage = getSupportedLanguage(i18n.resolvedLanguage);
   const locale = localeByLanguage[activeLanguage];
   const knownStationKeys = new Set(
     blackSeaLocations.flatMap((location) => [
-      normalizeSecretPhrase(location.id),
-      normalizeSecretPhrase(t(`weather.locations.${location.id}.name`)),
+      normalizeAccessPhrase(location.id),
+      normalizeAccessPhrase(t(`weather.locations.${location.id}.name`)),
     ]),
   );
 
   const selectedLocation =
     blackSeaLocations.find((location) => location.id === selectedLocationId) ??
     blackSeaLocations[0];
+
+  const allStations = useMemo(
+    () =>
+      [...blackSeaLocations]
+        .map((location) => ({
+          id: location.id,
+          name: t(`weather.locations.${location.id}.name`),
+          country: t(`weather.locations.${location.id}.country`),
+        }))
+        .sort((left, right) => left.name.localeCompare(right.name, locale)),
+    [locale, t],
+  );
 
   const filteredLocations = blackSeaLocations.filter((location) => {
     const query = searchQuery.trim().toLowerCase();
@@ -244,7 +260,6 @@ export function BlackSeaWeatherSite({
     return [
       t(`weather.locations.${location.id}.name`),
       t(`weather.locations.${location.id}.country`),
-      t(`weather.locations.${location.id}.summary`),
     ]
       .join(" ")
       .toLowerCase()
@@ -309,9 +324,9 @@ export function BlackSeaWeatherSite({
     setHeroVideoIndex(0);
   };
 
-  const buildSecretAccessRequest = async (
+  const buildAccessRequest = async (
     rawValue: string,
-  ): Promise<SecretAccessRequest | null> => {
+  ): Promise<AccessRequest | null> => {
     const trimmedValue = rawValue.trim();
     const dateCode = formatAccessDateCode();
 
@@ -320,8 +335,8 @@ export function BlackSeaWeatherSite({
     }
 
     const stationName = trimmedValue.slice(0, -dateCode.length);
-    const normalizedStationKey = normalizeSecretPhrase(stationName);
-    const caseSensitivePhrase = normalizeCaseSensitiveSecretPhrase(trimmedValue);
+    const normalizedStationKey = normalizeAccessPhrase(stationName);
+    const exactAccessPhrase = normalizeExactAccessPhrase(trimmedValue);
 
     if (
       stationName.length < 4 ||
@@ -332,7 +347,7 @@ export function BlackSeaWeatherSite({
       return null;
     }
 
-    const roomId = await hashPhrase(caseSensitivePhrase);
+    const roomId = await hashPhrase(exactAccessPhrase);
     return {
       roomId,
       stationName,
@@ -341,7 +356,7 @@ export function BlackSeaWeatherSite({
   };
 
   const handleSearchSubmit = async () => {
-    const access = await buildSecretAccessRequest(searchQuery);
+    const access = await buildAccessRequest(searchQuery);
 
     if (!access) {
       return;
@@ -365,12 +380,9 @@ export function BlackSeaWeatherSite({
       <Box className="weather-shell__aurora" />
       <Box className="weather-shell__grid">
         <Stack gap={{ base: 6, lg: 8 }}>
-          <HStack justify="space-between" align="center" flexWrap="wrap" gap={3}>
+          <HStack justify="space-between" align="center" flexWrap="wrap" gap={{ base: 2, md: 3 }}>
             <Text className="weather-brand">{t("weather.kicker")}</Text>
-            <HStack gap={3} align="center" className="language-map">
-              <Text className="weather-language-label">
-                {t("language.label")}
-              </Text>
+            <HStack gap={{ base: 2, md: 3 }} align="center" className="language-map">
               {supportedLanguages.map((language) => {
                 const isActive = activeLanguage === language;
 
@@ -396,21 +408,112 @@ export function BlackSeaWeatherSite({
               })}
               <ColorModeButton
                 className="theme-toggle"
-                display={{ base: "none", md: "inline-flex" }}
+                display="inline-flex"
               />
+              <ToggleTip
+                open={isInfoOpen}
+                onOpenChange={(details) => setIsInfoOpen(details.open)}
+                showArrow
+                contentProps={{ p: 4, width: "min(30rem, calc(100vw - 2rem))" }}
+                content={
+                  <Stack gap={4}>
+                    <HStack justify="space-between" align="start" gap={3}>
+                      <Stack gap={1}>
+                        <Text
+                          color="var(--weather-accent-color)"
+                          fontSize="0.76rem"
+                          fontWeight="700"
+                          letterSpacing="0.16em"
+                          textTransform="uppercase"
+                        >
+                          {t("weather.info.kicker")}
+                        </Text>
+                        <Text color="var(--weather-text-main)" fontSize="lg" fontWeight="700">
+                          {t("weather.info.title")}
+                        </Text>
+                      </Stack>
+                      <IconButton
+                        size="sm"
+                        className="theme-toggle"
+                        aria-label={t("weather.info.close")}
+                        title={t("weather.info.close")}
+                        onClick={() => setIsInfoOpen(false)}
+                      >
+                        <MdClose />
+                      </IconButton>
+                    </HStack>
+
+                    <Text color="var(--weather-text-soft)" fontSize="sm">
+                      {t("weather.info.description")}
+                    </Text>
+
+                    <Box
+                      borderRadius="1rem"
+                      border="1px solid var(--weather-chip-border)"
+                      bg="var(--weather-subtle-card-bg)"
+                      p={3}
+                    >
+                      <Text color="var(--weather-label-color)" fontSize="xs" fontWeight="700" letterSpacing="0.12em" textTransform="uppercase" mb={2}>
+                        {t("weather.info.exampleLabel")}
+                      </Text>
+                      <Text color="var(--weather-text-main)" fontSize="sm">
+                        {t("weather.info.example")}
+                      </Text>
+                    </Box>
+
+                    <Stack gap={2}>
+                      <Text color="var(--weather-label-color)" fontSize="xs" fontWeight="700" letterSpacing="0.12em" textTransform="uppercase">
+                        {t("weather.info.stationsTitle")}
+                      </Text>
+                      <Box
+                        maxH="18rem"
+                        overflowY="auto"
+                        pr={1}
+                      >
+                        <Box
+                          display="grid"
+                          gridTemplateColumns={{ base: "1fr", sm: "1fr 1fr" }}
+                          gap={2}
+                        >
+                          {allStations.map((station) => (
+                            <Box
+                              key={station.id}
+                              borderRadius="0.9rem"
+                              border="1px solid var(--weather-chip-border)"
+                              bg="var(--weather-chip-bg)"
+                              px={3}
+                              py={2}
+                            >
+                              <Text color="var(--weather-text-main)" fontSize="sm" fontWeight="600">
+                                {station.name}
+                              </Text>
+                              <Text color="var(--weather-text-subtle)" fontSize="xs">
+                                {station.country}
+                              </Text>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Stack>
+                  </Stack>
+                }
+              >
+                <IconButton
+                  className="theme-toggle"
+                  aria-label={t("weather.info.buttonLabel")}
+                  title={t("weather.info.buttonLabel")}
+                  size="sm"
+                >
+                  <MdInfoOutline />
+                </IconButton>
+              </ToggleTip>
             </HStack>
           </HStack>
 
           <Box className="weather-hero">
             <Stack gap={6}>
               <Stack gap={3} maxW="42rem">
-                <HStack align="flex-start" gap={3} display={{ base: "flex", md: "none" }}>
-                  <ColorModeButton className="theme-toggle" flexShrink={0} mt={1} />
-                  <Heading as="h1" className="weather-title">
-                    {t("weather.heroTitle")}
-                  </Heading>
-                </HStack>
-                <Heading as="h1" className="weather-title" display={{ base: "none", md: "block" }}>
+                <Heading as="h1" className="weather-title">
                   {t("weather.heroTitle")}
                 </Heading>
                 <Text className="weather-description">
@@ -501,7 +604,7 @@ export function BlackSeaWeatherSite({
                   {t(`weather.locations.${selectedLocation.id}.name`)}, {t(`weather.locations.${selectedLocation.id}.country`)}
                 </Heading>
                 <Text className="weather-stage-summary" maxW="24rem">
-                  {t(`weather.locations.${selectedLocation.id}.summary`)}
+                  {t("weather.stationSummary")}
                 </Text>
                 {snapshot ? (
                   <HStack gap={3} flexWrap="wrap">

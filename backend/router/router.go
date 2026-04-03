@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"log"
+	"messenger-backend/bulletin"
 	translations "messenger-backend/i18n"
 	"messenger-backend/room"
 	"net/http"
@@ -20,6 +21,8 @@ type Message struct {
 }
 
 var roomManager = room.NewRoomManager()
+
+var bulletinStore *bulletin.Store
 
 // allowedOrigins builds the set of permitted WebSocket origins from the
 // CORS_ORIGIN environment variable (comma-separated) plus the local dev origin.
@@ -45,15 +48,88 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func SetupRouter() *gin.Engine {
+func SetupRouter() (*gin.Engine, error) {
+	store, err := bulletin.NewStore(bulletin.DefaultStorePath())
+	if err != nil {
+		return nil, err
+	}
+
+	bulletinStore = store
+
 	router := gin.New()
 	router.Use(gin.Recovery())
 	go roomManager.CleanupRooms() // Start the cleanup goroutine
+	go bulletinStore.CleanupExpired()
 	router.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
 	router.GET("/api/i18n/:language", handlePublicTranslation)
 	router.GET("/api/rooms/:roomId/status", handleRoomStatus)
+	router.POST("/api/bulletins/store", handleBulletinStore)
+	router.POST("/api/bulletins/read-once", handleBulletinReadOnce)
 	router.GET("/ws", func(c *gin.Context) { handleWebSocket(c.Writer, c.Request) })
-	return router
+	return router, nil
+}
+
+type bulletinEnvelopeResponse struct {
+	Version    int    `json:"version"`
+	Nonce      string `json:"nonce"`
+	Ciphertext string `json:"ciphertext"`
+}
+
+func handleBulletinStore(c *gin.Context) {
+	var request struct {
+		MailboxID          string                   `json:"mailboxId"`
+		AccessVerifier     string                   `json:"accessVerifier"`
+		CiphertextEnvelope bulletinEnvelopeResponse `json:"ciphertextEnvelope"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	err := bulletinStore.StoreNote(request.MailboxID, request.AccessVerifier, bulletin.Envelope{
+		Version:    request.CiphertextEnvelope.Version,
+		Nonce:      request.CiphertextEnvelope.Nonce,
+		Ciphertext: request.CiphertextEnvelope.Ciphertext,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+func handleBulletinReadOnce(c *gin.Context) {
+	var request struct {
+		MailboxID      string `json:"mailboxId"`
+		AccessVerifier string `json:"accessVerifier"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
+	envelope, ok, err := bulletinStore.ReadOnce(request.MailboxID, request.AccessVerifier)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "unavailable"})
+		return
+	}
+
+	if !ok || envelope == nil {
+		c.JSON(http.StatusOK, gin.H{"ok": true, "note": nil})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ok": true,
+		"note": bulletinEnvelopeResponse{
+			Version:    envelope.Version,
+			Nonce:      envelope.Nonce,
+			Ciphertext: envelope.Ciphertext,
+		},
+	})
 }
 
 func handlePublicTranslation(c *gin.Context) {

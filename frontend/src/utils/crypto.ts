@@ -1,4 +1,4 @@
-export function normalizeSecretPhrase(phrase: string): string {
+export function normalizeAccessPhrase(phrase: string): string {
   return phrase
     .trim()
     .toLocaleLowerCase()
@@ -6,7 +6,7 @@ export function normalizeSecretPhrase(phrase: string): string {
     .replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
-export function normalizeCaseSensitiveSecretPhrase(phrase: string): string {
+export function normalizeExactAccessPhrase(phrase: string): string {
   return phrase
     .trim()
     .normalize("NFKC")
@@ -15,7 +15,7 @@ export function normalizeCaseSensitiveSecretPhrase(phrase: string): string {
 
 export async function hashPhrase(phrase: string): Promise<string> {
   const encoder = new TextEncoder();
-  const normalizedPhrase = normalizeCaseSensitiveSecretPhrase(phrase);
+  const normalizedPhrase = normalizeExactAccessPhrase(phrase);
   const data = encoder.encode(normalizedPhrase);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));

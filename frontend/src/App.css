@@ -54,9 +54,9 @@ html.dark {
   --weather-stage-title-color: #f7fbfd;
   --weather-stage-title-shadow: 0 2px 20px rgba(3, 8, 12, 0.58);
   --weather-note-body-color: rgba(234, 243, 247, 0.88);
-  --secret-door-filter: invert(92%) sepia(9%) saturate(368%) hue-rotate(166deg) brightness(95%) contrast(90%);
-  --secret-door-surface-bg: linear-gradient(180deg, rgba(7, 18, 27, 0.56), rgba(7, 18, 27, 0.18));
-  --secret-door-surface-border: rgba(205, 228, 236, 0.14);
+  --access-door-filter: invert(92%) sepia(9%) saturate(368%) hue-rotate(166deg) brightness(95%) contrast(90%);
+  --access-door-surface-bg: linear-gradient(180deg, rgba(7, 18, 27, 0.56), rgba(7, 18, 27, 0.18));
+  --access-door-surface-border: rgba(205, 228, 236, 0.14);
 }
 
 html.light {
@@ -114,9 +114,9 @@ html.light {
   --weather-stage-title-color: #ffffff;
   --weather-stage-title-shadow: 0 2px 20px rgba(18, 35, 48, 0.52);
   --weather-note-body-color: rgba(23, 50, 70, 0.92);
-  --secret-door-filter: invert(14%) sepia(23%) saturate(766%) hue-rotate(163deg) brightness(97%) contrast(91%);
-  --secret-door-surface-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(231, 240, 246, 0.9));
-  --secret-door-surface-border: rgba(67, 98, 120, 0.16);
+  --access-door-filter: invert(14%) sepia(23%) saturate(766%) hue-rotate(163deg) brightness(97%) contrast(91%);
+  --access-door-surface-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(231, 240, 246, 0.9));
+  --access-door-surface-border: rgba(67, 98, 120, 0.16);
 }
 
 #root {
@@ -242,7 +242,7 @@ html.light {
 
 .weather-search-panel,
 .weather-card,
-.secret-overlay__panel {
+.access-overlay__panel {
   border: 1px solid var(--weather-panel-border);
   background: var(--weather-panel-bg);
   box-shadow: var(--weather-panel-shadow);
@@ -433,7 +433,7 @@ html.light {
   padding: 0.9rem 1rem;
 }
 
-.secret-overlay {
+.access-overlay {
   position: fixed;
   inset: 0;
   z-index: 40;
@@ -445,45 +445,45 @@ html.light {
   backdrop-filter: blur(14px);
 }
 
-.secret-overlay__panel {
+.access-overlay__panel {
   width: min(100%, 32rem);
   border-radius: 1.5rem;
   padding: 1.4rem;
 }
 
-.secret-door {
+.access-door {
   max-width: 18rem;
   margin: 0 auto;
   padding: 0.9rem 1rem 1.1rem;
   border-radius: 1.25rem;
-  border: 1px solid var(--secret-door-surface-border);
-  background: var(--secret-door-surface-bg);
+  border: 1px solid var(--access-door-surface-border);
+  background: var(--access-door-surface-bg);
 }
 
-.secret-door__image {
+.access-door__image {
   display: block;
   width: 100%;
   height: auto;
-  filter: var(--secret-door-filter);
+  filter: var(--access-door-filter);
   opacity: 0.95;
 }
 
-.secret-door__indicators {
+.access-door__indicators {
   margin-bottom: 0.9rem;
   align-items: center;
 }
 
-.secret-door__indicator {
+.access-door__indicator {
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
   background: rgba(4, 12, 18, 0.5);
 }
 
-.secret-door__indicator--active {
+.access-door__indicator--active {
   background: rgba(11, 30, 20, 0.72);
 }
 
-.secret-door__light {
+.access-door__light {
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 999px;
@@ -491,12 +491,12 @@ html.light {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.secret-door__indicator--active .secret-door__light {
+.access-door__indicator--active .access-door__light {
   background: #6ddb87;
   box-shadow: 0 0 14px rgba(109, 219, 135, 0.64);
 }
 
-.secret-door__indicator-label {
+.access-door__indicator-label {
   color: rgba(239, 244, 246, 0.84);
   font-size: 0.78rem;
   letter-spacing: 0.08em;
@@ -543,9 +543,27 @@ html.light {
     padding: 1rem 0.9rem 2rem;
   }
 
+  .language-map {
+    row-gap: 0.2rem;
+  }
+
+  .language-pill {
+    min-width: 4.65rem;
+    padding: 0.34rem 0.62rem;
+    font-size: 0.76rem;
+    letter-spacing: 0.05em;
+  }
+
+  .theme-toggle {
+    min-width: 2rem;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+  }
+
   .weather-search-panel,
   .weather-card,
-  .secret-overlay__panel {
+  .access-overlay__panel {
     border-radius: 1.15rem;
   }
 

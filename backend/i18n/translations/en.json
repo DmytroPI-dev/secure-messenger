@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Black Sea Coastal Outlook"
+    "title": "Black Sea Weather"
   },
   "language": {
     "label": "Language",
@@ -9,22 +9,22 @@
     "tr": "Türkçe"
   },
   "weather": {
-    "kicker": "Black Sea Coastal Outlook",
-    "heroTitle": "Marine weather, shoreline wind, and daily coastal conditions.",
-    "heroDescription": "Regional forecasts for ports, beaches, marinas, and shoreline travel around the Black Sea.",
-    "searchLabel": "Search coastal station",
+    "kicker": "Black Sea Weather",
+    "heroTitle": "Sea weather, wind, and daily conditions.",
+    "heroDescription": "Forecasts for ports, beaches, marinas, and coastal trips around the Black Sea.",
+    "searchLabel": "Search station",
     "searchPlaceholder": "Try Sochi, Varna, Batumi, Sinop...",
-    "noStationMatchTitle": "No station match",
-    "noStationMatchBody": "Refine the city name or search by country.",
+    "noStationMatchTitle": "No match found",
+    "noStationMatchBody": "Try a different city or search by country.",
     "selectedStation": "Selected station",
-    "currentConditions": "Current conditions",
-    "updatedFeed": "Updated from regional forecast feeds.",
-    "issuedAt": "Issued {{time}} {{timezone}}",
-    "loading": "Loading coastal forecast...",
+    "currentConditions": "Right now",
+    "updatedFeed": "Updated from weather feeds.",
+    "issuedAt": "Updated {{time}} {{timezone}}",
+    "loading": "Loading forecast...",
     "errors": {
-      "forecastUnavailable": "Forecast feed is unavailable.",
-      "invalidResponse": "Forecast feed returned an invalid response.",
-      "loadFailed": "Weather data could not be loaded."
+      "forecastUnavailable": "Can't load forecast right now.",
+      "invalidResponse": "Got a bad response from the weather service.",
+      "loadFailed": "Couldn't load weather data."
     },
     "metrics": {
       "air": "Air",
@@ -37,179 +37,212 @@
       "wavePeriod": "Wave period",
       "waveDirection": "Wave direction"
     },
-    "sevenDayTitle": "Seven-day shoreline outlook",
+    "sevenDayTitle": "7-day forecast",
     "sunrise": "Sunrise {{time}}",
     "sunset": "Sunset {{time}}",
-    "hourlyKicker": "Hourly coast watch",
-    "hourlyTitle": "Wind and sea trend",
-    "hourlyEmpty": "Hourly sea-state data will appear here.",
-    "regionalNote": "Regional note",
-    "regionalNoteTitle": "Practical shoreline planning",
-    "regionalNoteBody": "Use wind, wave, and rain shifts together. Calm morning water can still deteriorate quickly once afternoon gust bands move inland.",
-    "dataSource": "Data source: Open-Meteo forecast and marine feeds for the selected coastal station.",
+    "hourlyKicker": "Hour by hour",
+    "hourlyTitle": "Wind and waves",
+    "hourlyEmpty": "Hourly conditions will show here.",
+    "regionalNote": "Tip",
+    "regionalNoteTitle": "Planning your trip",
+    "regionalNoteBody": "Watch wind, waves, and rain together. Calm mornings can turn rough fast when afternoon winds pick up.",
+    "stationSummary": "Weather for Black Sea ports, beaches, marinas, and coastal trips.",
+    "dataSource": "Data from Open-Meteo weather service for the selected station.",
     "rainChance": "Rain {{value}}%",
     "windSpeed": "Wind {{value}} km/h",
+    "info": {
+      "buttonLabel": "How to use this page",
+      "kicker": "Quick guide",
+      "title": "How it works",
+      "description": "Search for a station or pick one below to see its forecast. You can search by city or country.",
+      "exampleLabel": "Quick start",
+      "example": "Type a city like Varna or Batumi, or tap a station to see its forecast.",
+      "stationsTitle": "Available stations",
+      "close": "Close"
+    },
     "locations": {
       "odessa": {
         "name": "Odesa",
-        "country": "Ukraine",
-        "summary": "Port-facing outlook for coastal travel, harbor wind, and surf conditions."
+        "country": "Ukraine"
       },
       "chornomorsk": {
         "name": "Chornomorsk",
-        "country": "Ukraine",
-        "summary": "Operational forecast for port traffic, nearshore wind, and short coastal departures."
+        "country": "Ukraine"
       },
       "yuzhne": {
         "name": "Yuzhne",
-        "country": "Ukraine",
-        "summary": "Operational forecast for port traffic, nearshore wind, and short coastal departures."
+        "country": "Ukraine"
       },
       "skadovsk": {
         "name": "Skadovsk",
-        "country": "Ukraine",
-        "summary": "Operational forecast for port traffic, nearshore wind, and short coastal departures."
+        "country": "Ukraine"
       },
       "sulina": {
         "name": "Sulina",
-        "country": "Romania",
-        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+        "country": "Romania"
       },
       "constanta": {
         "name": "Constanta",
-        "country": "Romania",
-        "summary": "Marine brief for shoreline weather shifts, visibility, and sea state."
+        "country": "Romania"
       },
       "mangalia": {
         "name": "Mangalia",
-        "country": "Romania",
-        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+        "country": "Romania"
       },
       "balchik": {
         "name": "Balchik",
-        "country": "Bulgaria",
-        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+        "country": "Bulgaria"
       },
       "varna": {
         "name": "Varna",
-        "country": "Bulgaria",
-        "summary": "Daily coast watch for wind windows, showers, and harbor temperature swings."
+        "country": "Bulgaria"
       },
       "nessebar": {
         "name": "Nessebar",
-        "country": "Bulgaria",
-        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+        "country": "Bulgaria"
       },
       "burgas": {
         "name": "Burgas",
-        "country": "Bulgaria",
-        "summary": "Forecast focused on marina conditions, wave timing, and evening stability."
+        "country": "Bulgaria"
       },
       "sozopol": {
         "name": "Sozopol",
-        "country": "Bulgaria",
-        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+        "country": "Bulgaria"
       },
       "tsarevo": {
         "name": "Tsarevo",
-        "country": "Bulgaria",
-        "summary": "Coastal operations outlook for harbor wind, sea state, and shoreline visibility."
+        "country": "Bulgaria"
       },
       "igneada": {
         "name": "Igneada",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "sile": {
         "name": "Sile",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "zonguldak": {
         "name": "Zonguldak",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "amasra": {
         "name": "Amasra",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "sinop": {
         "name": "Sinop",
-        "country": "Turkey",
-        "summary": "Northern coast watch for sea temperature, gusts, and coastal rain bands."
+        "country": "Turkey"
       },
       "samsun": {
         "name": "Samsun",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "ordu": {
         "name": "Ordu",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "giresun": {
         "name": "Giresun",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "trabzon": {
         "name": "Trabzon",
-        "country": "Turkey",
-        "summary": "Useful for fishing departures, wave height checks, and cloud cover changes."
+        "country": "Turkey"
       },
       "rize": {
         "name": "Rize",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "hopa": {
         "name": "Hopa",
-        "country": "Turkey",
-        "summary": "Northern coast brief for sea temperature, gust bands, and small-craft planning."
+        "country": "Turkey"
       },
       "batumi": {
         "name": "Batumi",
-        "country": "Georgia",
-        "summary": "Coastal weather desk for humid air shifts, sea state, and short-range outlooks."
+        "country": "Georgia"
       },
       "kobuleti": {
         "name": "Kobuleti",
-        "country": "Georgia",
-        "summary": "Marine desk for humid air shifts, wave state, and short-range coastal changes."
+        "country": "Georgia"
       },
       "poti": {
         "name": "Poti",
-        "country": "Georgia",
-        "summary": "Marine desk for humid air shifts, wave state, and short-range coastal changes."
+        "country": "Georgia"
       },
       "sochi": {
         "name": "Sochi",
-        "country": "Russia",
-        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+        "country": "Russia"
       },
       "tuapse": {
         "name": "Tuapse",
-        "country": "Russia",
-        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+        "country": "Russia"
       },
       "gelendzhik": {
         "name": "Gelendzhik",
-        "country": "Russia",
-        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+        "country": "Russia"
       },
       "novorossiysk": {
         "name": "Novorossiysk",
-        "country": "Russia",
-        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+        "country": "Russia"
       },
       "anapa": {
         "name": "Anapa",
-        "country": "Russia",
-        "summary": "Black Sea resort and port outlook for surf, visibility, and harbor wind shifts."
+        "country": "Russia"
       }
+    }
+  },
+  "gate": {
+    "heading": "",
+    "status": {
+      "roomEmpty": "Room is empty",
+      "peerWaiting": "Peer is waiting for you",
+      "checking": "Checking room..."
+    },
+    "callMode": "Call mode",
+    "audioOnly": "Audio only",
+    "video": "Video",
+    "modeLocked": "First participant set mode to {{mode}}.",
+    "lockedMode": {
+      "audio": "audio only",
+      "video": "video"
+    },
+    "openDoor": "Open door",
+    "returnToForecast": "Cancel",
+    "bulletin": {
+      "kicker": "Leave a note",
+      "heading": "Leave a comment",
+      "description": "",
+      "storeTitle": "Leave message",
+      "readTitle": "Read message",
+      "emojiLabels": {
+        "store": "Leave message",
+        "read": "Read message"
+      },
+      "placeholders": {
+        "storeCode": "",
+        "readCode": "",
+        "text": "How lovely the sea is in summer!"
+      },
+      "textLimit": "Up to {{count}} characters.",
+      "actions": {
+        "save": "Save",
+        "read": "Read",
+        "cancel": "Cancel",
+        "close": "Close",
+        "showCode": "Show",
+        "hideCode": "Hide"
+      },
+      "feedback": {
+        "storeSuccess": "Message saved. Any old message with this code was replaced.",
+        "invalidInput": "Check your code, date, time, and message.",
+        "storeError": "Couldn't save message.",
+        "readBlocked": "Can't read right after saving from the same session.",
+        "readMiss": "No message found for this code.",
+        "readError": "Couldn't open message.",
+        "readSuccess": "Message received and deleted from server."
+      },
+      "retrievedTitle": "Retrieved advisory",
+      "retrievedHint": "This advisory was removed after retrieval."
     }
   },
   "call": {
@@ -222,10 +255,10 @@
         "unverified": "Verify peer code"
       },
       "description": {
-        "trusted": "The stored fingerprint matches this peer. Re-verify if the contact setup changed.",
-        "changed": "The stored fingerprint does not match this peer. Treat the session as untrusted until you verify and update it.",
-        "waiting": "The call is still negotiating. The peer code will appear once offer or answer exchange completes.",
-        "unverified": "Compare your short code with the peer short code on the other device, then mark it as verified."
+        "trusted": "Saved fingerprint matches. Re-verify if anything changed.",
+        "changed": "Saved fingerprint doesn't match! Don't trust this session until you verify and update.",
+        "waiting": "Call is connecting. Code will show once ready.",
+        "unverified": "Compare your code with the other person's code, then mark as verified."
       },
       "storedAt": "Stored {{time}}",
       "yourCode": "Your short code",

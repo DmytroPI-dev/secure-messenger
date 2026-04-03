@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Karadeniz Kıyı Tahmini"
+    "title": "Karadeniz Hava Durumu"
   },
   "language": {
     "label": "Dil",
@@ -9,22 +9,22 @@
     "tr": "Türkçe"
   },
   "weather": {
-    "kicker": "Karadeniz Kıyı Tahmini",
-    "heroTitle": "Deniz hava durumu, kıyı rüzgarları ve günlük sahil koşulları.",
-    "heroDescription": "Karadeniz çevresindeki limanlar, plajlar, marinalar ve sahil yolculukları için bölgesel tahminler.",
-    "searchLabel": "Kıyı istasyonu ara",
+    "kicker": "Karadeniz Hava Durumu",
+    "heroTitle": "Deniz hava durumu, rüzgar ve günlük koşullar.",
+    "heroDescription": "Karadeniz'deki limanlar, plajlar, marinalar ve sahil gezileri için tahminler.",
+    "searchLabel": "İstasyon ara",
     "searchPlaceholder": "Örn: Soçi, Varna, Batum, Sinop...",
-    "noStationMatchTitle": "İstasyon bulunamadı",
-    "noStationMatchBody": "Şehir adını veya ülkeyi değiştirerek tekrar deneyin.",
+    "noStationMatchTitle": "Bulunamadı",
+    "noStationMatchBody": "Başka bir şehir dene veya ülkeye göre ara.",
     "selectedStation": "Seçili istasyon",
-    "currentConditions": "Mevcut durum",
-    "updatedFeed": "Bölgesel tahmin akışlarından güncellendi.",
-    "issuedAt": "Yayın: {{time}} {{timezone}}",
-    "loading": "Sahil tahmini yükleniyor...",
+    "currentConditions": "Şu an",
+    "updatedFeed": "Hava durumu akışından güncellendi.",
+    "issuedAt": "Güncelleme: {{time}} {{timezone}}",
+    "loading": "Tahmin yükleniyor...",
     "errors": {
-      "forecastUnavailable": "Tahmin verisine ulaşılamıyor.",
-      "invalidResponse": "Tahmin servisinden geçersiz yanıt alındı.",
-      "loadFailed": "Hava durumu verileri yüklenemedi."
+      "forecastUnavailable": "Tahmin şu an yüklenemiyor.",
+      "invalidResponse": "Hava durumu servisinden hatalı yanıt geldi.",
+      "loadFailed": "Veri yüklenemedi."
     },
     "metrics": {
       "air": "Hava",
@@ -37,179 +37,212 @@
       "wavePeriod": "Dalga periyodu",
       "waveDirection": "Dalga yönü"
     },
-    "sevenDayTitle": "7 günlük sahil tahmini",
+    "sevenDayTitle": "7 günlük tahmin",
     "sunrise": "Gündoğumu {{time}}",
     "sunset": "Günbatımı {{time}}",
-    "hourlyKicker": "Saatlik sahil durumu",
-    "hourlyTitle": "Rüzgar ve deniz trendi",
-    "hourlyEmpty": "Saatlik deniz durumu verileri burada gösterilecek.",
-    "regionalNote": "Bölgesel not",
-    "regionalNoteTitle": "Kıyı planlaması için ipuçları",
-    "regionalNoteBody": "Rüzgar, dalga ve yağış değişimlerini birlikte değerlendirin. Sabah sakin olan deniz, öğleden sonra rüzgarın artmasıyla aniden bozabilir.",
-    "dataSource": "Veri kaynağı: Seçilen sahil istasyonu için Open-Meteo tahmin ve deniz akışları.",
+    "hourlyKicker": "Saatlik durum",
+    "hourlyTitle": "Rüzgar ve dalgalar",
+    "hourlyEmpty": "Saatlik durum burada gösterilecek.",
+    "regionalNote": "İpucu",
+    "regionalNoteTitle": "Gezi planlarken",
+    "regionalNoteBody": "Rüzgar, dalga ve yağmuru birlikte izle. Sabah sakin deniz, öğleden sonra rüzgar çıkınca hızla bozabilir.",
+    "stationSummary": "Karadeniz limanları, plajları, marinaları ve sahil gezileri için hava durumu.",
+    "dataSource": "Seçilen istasyon için Open-Meteo hava durumu servisi verileri.",
     "rainChance": "Yağış {{value}}%",
-    "windSpeed": "Rüzgar {{value}} km/s",
+    "windSpeed": "Rüzgar {{value}} km/h",
+    "info": {
+      "buttonLabel": "Bu sayfa nasıl kullanılır",
+      "kicker": "Kullanım rehberi",
+      "title": "Nasıl kullanılır",
+      "description": "İstasyon ara veya aşağıdan seç. Şehir veya ülke adına göre arama yapabilirsin.",
+      "exampleLabel": "Hızlı başlangıç",
+      "example": "Varna veya Batum gibi bir şehir adı yaz ya da bir istasyona tıkla.",
+      "stationsTitle": "Kullanılabilir istasyonlar",
+      "close": "Kapat"
+    },
     "locations": {
       "odessa": {
         "name": "Odessa",
-        "country": "Ukrayna",
-        "summary": "Kıyı seyahatleri, liman rüzgarları ve sörf koşulları için hava durumu."
+        "country": "Ukrayna"
       },
       "chornomorsk": {
         "name": "Chornomorsk",
-        "country": "Ukrayna",
-        "summary": "Liman trafiği, kıyı rüzgarı ve kısa sahil çıkışları için operasyonel tahmin."
+        "country": "Ukrayna"
       },
       "yuzhne": {
         "name": "Yuzhne",
-        "country": "Ukrayna",
-        "summary": "Liman trafiği, kıyı rüzgarı ve kısa sahil çıkışları için operasyonel tahmin."
+        "country": "Ukrayna"
       },
       "skadovsk": {
         "name": "Skadovsk",
-        "country": "Ukrayna",
-        "summary": "Liman trafiği, kıyı rüzgarı ve kısa sahil çıkışları için operasyonel tahmin."
+        "country": "Ukrayna"
       },
       "sulina": {
         "name": "Sulina",
-        "country": "Romanya",
-        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+        "country": "Romanya"
       },
       "constanta": {
         "name": "Köstence",
-        "country": "Romanya",
-        "summary": "Kıyıdaki hava değişimleri, görüş mesafesi ve deniz durumu için denizcilik özeti."
+        "country": "Romanya"
       },
       "mangalia": {
         "name": "Mangalya",
-        "country": "Romanya",
-        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+        "country": "Romanya"
       },
       "balchik": {
         "name": "Balçık",
-        "country": "Bulgaristan",
-        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+        "country": "Bulgaristan"
       },
       "varna": {
         "name": "Varna",
-        "country": "Bulgaristan",
-        "summary": "Rüzgar aralıkları, sağanak yağışlar ve liman sıcaklık değişimleri için günlük sahil takibi."
+        "country": "Bulgaristan"
       },
       "nessebar": {
         "name": "Nesebar",
-        "country": "Bulgaristan",
-        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+        "country": "Bulgaristan"
       },
       "burgas": {
         "name": "Burgaz",
-        "country": "Bulgaristan",
-        "summary": "Marina koşulları, dalga zamanlaması ve akşam istikrarına odaklanan tahmin."
+        "country": "Bulgaristan"
       },
       "sozopol": {
         "name": "Sozopol",
-        "country": "Bulgaristan",
-        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+        "country": "Bulgaristan"
       },
       "tsarevo": {
         "name": "Tsarevo",
-        "country": "Bulgaristan",
-        "summary": "Liman rüzgarı, deniz durumu ve kıyı görüşü için operasyonel sahil görünümü."
+        "country": "Bulgaristan"
       },
       "igneada": {
         "name": "İğneada",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "sile": {
         "name": "Şile",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "zonguldak": {
         "name": "Zonguldak",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "amasra": {
         "name": "Amasra",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "sinop": {
         "name": "Sinop",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar hamleleri ve kıyı yağış bantları için kuzey kıyısı görünümü."
+        "country": "Türkiye"
       },
       "samsun": {
         "name": "Samsun",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "ordu": {
         "name": "Ordu",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "giresun": {
         "name": "Giresun",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "trabzon": {
         "name": "Trabzon",
-        "country": "Türkiye",
-        "summary": "Balıkçılık seferleri, dalga boyu kontrolleri ve bulutlanma değişiklikleri için faydalıdır."
+        "country": "Türkiye"
       },
       "rize": {
         "name": "Rize",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "hopa": {
         "name": "Hopa",
-        "country": "Türkiye",
-        "summary": "Deniz suyu sıcaklığı, rüzgar bantları ve küçük tekne planlaması için kuzey kıyısı özeti."
+        "country": "Türkiye"
       },
       "batumi": {
         "name": "Batum",
-        "country": "Gürcistan",
-        "summary": "Nemli hava hareketleri, deniz durumu ve kısa vadeli tahminler için sahil rehberi."
+        "country": "Gürcistan"
       },
       "kobuleti": {
         "name": "Kobuleti",
-        "country": "Gürcistan",
-        "summary": "Nemli hava geçişleri, dalga durumu ve kısa vadeli kıyı değişimleri için deniz rehberi."
+        "country": "Gürcistan"
       },
       "poti": {
         "name": "Poti",
-        "country": "Gürcistan",
-        "summary": "Nemli hava geçişleri, dalga durumu ve kısa vadeli kıyı değişimleri için deniz rehberi."
+        "country": "Gürcistan"
       },
       "sochi": {
         "name": "Soçi",
-        "country": "Rusya",
-        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+        "country": "Rusya"
       },
       "tuapse": {
         "name": "Tuapse",
-        "country": "Rusya",
-        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+        "country": "Rusya"
       },
       "gelendzhik": {
         "name": "Gelencik",
-        "country": "Rusya",
-        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+        "country": "Rusya"
       },
       "novorossiysk": {
         "name": "Novorossiysk",
-        "country": "Rusya",
-        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+        "country": "Rusya"
       },
       "anapa": {
         "name": "Anapa",
-        "country": "Rusya",
-        "summary": "Karadeniz liman ve sayfiye hatları için sörf, görüş ve liman rüzgarı görünümü."
+        "country": "Rusya"
       }
+    }
+  },
+  "gate": {
+    "heading": "",
+    "status": {
+      "roomEmpty": "Oda boş",
+      "peerWaiting": "Karşı taraf seni bekliyor",
+      "checking": "Oda kontrol ediliyor..."
+    },
+    "callMode": "Arama modu",
+    "audioOnly": "Yalnızca ses",
+    "video": "Video",
+    "modeLocked": "İlk katılımcı {{mode}} modunu ayarladı.",
+    "lockedMode": {
+      "audio": "yalnızca ses",
+      "video": "video"
+    },
+    "openDoor": "Kapıyı aç",
+    "returnToForecast": "İptal",
+    "bulletin": {
+      "kicker": "Not bırak",
+      "heading": "Yorum bırak",
+      "description": "",
+      "storeTitle": "Mesaj bırak",
+      "readTitle": "Mesajı oku",
+      "emojiLabels": {
+        "store": "Mesaj bırak",
+        "read": "Mesajı oku"
+      },
+      "placeholders": {
+        "storeCode": "",
+        "readCode": "",
+        "text": "Yazın deniz ne kadar güzel!"
+      },
+      "textLimit": "En fazla {{count}} karakter.",
+      "actions": {
+        "save": "Kaydet",
+        "read": "Oku",
+        "cancel": "İptal",
+        "close": "Kapat",
+        "showCode": "Göster",
+        "hideCode": "Gizle"
+      },
+      "feedback": {
+        "storeSuccess": "Mesaj kaydedildi. Bu koddaki eski mesaj değiştirildi.",
+        "invalidInput": "Kodu, tarihi, saati ve mesajı kontrol et.",
+        "storeError": "Mesaj kaydedilemedi.",
+        "readBlocked": "Aynı oturumda kaydettikten hemen sonra okuyamazsın.",
+        "readMiss": "Bu kod için mesaj yok.",
+        "readError": "Mesaj açılamadı.",
+        "readSuccess": "Mesaj alındı ve sunucudan silindi."
+      },
+      "retrievedTitle": "Alınan uyarı",
+      "retrievedHint": "Bu uyarı alındıktan sonra kaldırıldı."
     }
   },
   "call": {
@@ -222,10 +255,10 @@
         "unverified": "Eş kodunu doğrulayın"
       },
       "description": {
-        "trusted": "Kayıtlı parmak izi bu eş ile uyuşuyor. İletişim düzeni değiştiyse yeniden doğrulayın.",
-        "changed": "Kayıtlı parmak izi bu eş ile uyuşmuyor. Doğrulayıp güncellemeden bu oturumu güvenilmez sayın.",
-        "waiting": "Arama hala kuruluyor. Eş kodu offer ve answer değişimi tamamlandığında görünecek.",
-        "unverified": "Kısa kodunuzu diğer cihazdaki eş kısa kodu ile karşılaştırın, sonra doğrulandı olarak işaretleyin."
+        "trusted": "Kayıtlı parmak izi eşleşiyor. Bir şey değiştiyse tekrar doğrula.",
+        "changed": "Kayıtlı parmak izi eşleşmiyor! Doğrulayıp güncelleyene kadar bu oturuma güvenme.",
+        "waiting": "Arama bağlanıyor. Kod hazır olunca görünecek.",
+        "unverified": "Kodunu karşıdaki kişinin koduyla karşılaştır, sonra doğrulandı olarak işaretle."
       },
       "storedAt": "Kaydedildi {{time}}",
       "yourCode": "Kısa kodunuz",

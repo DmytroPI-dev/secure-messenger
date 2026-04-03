@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BlackSeaWeatherSite,
-  type SecretAccessRequest,
+  type AccessRequest,
 } from "./components/BlackSeaWeatherSite";
 import { JoinRoom, type CallMode } from "./components/JoinRoom";
 import { CallRoom } from "./components/CallRoom";
@@ -20,8 +20,8 @@ function App() {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [callMode, setCallMode] = useState<CallMode>("audio");
   const [continuityHint, setContinuityHint] = useState<string | null>(null);
-  const [isSecretEntryOpen, setIsSecretEntryOpen] = useState(false);
-  const [pendingAccess, setPendingAccess] = useState<SecretAccessRequest | null>(null);
+  const [isAccessEntryOpen, setIsAccessEntryOpen] = useState(false);
+  const [pendingAccess, setPendingAccess] = useState<AccessRequest | null>(null);
   const roomIdRef = useRef<string | null>(null);
   const continuityHintRef = useRef<string | null>(null);
 
@@ -94,7 +94,7 @@ function App() {
       clearStoredPeerFingerprint(currentContinuityHint);
     }
 
-    setIsSecretEntryOpen(false);
+    setIsAccessEntryOpen(false);
     setPendingAccess(null);
     setCallMode("audio");
     setContinuityHint(null);
@@ -103,7 +103,7 @@ function App() {
 
   const handleJoinRoom = (nextRoomId: string, nextMode: CallMode) => {
     const nextContinuityHint = pendingAccess?.stationName ?? nextRoomId;
-    setIsSecretEntryOpen(false);
+    setIsAccessEntryOpen(false);
     setPendingAccess(null);
     setCallMode(nextMode);
     setContinuityHint(nextContinuityHint);
@@ -128,12 +128,12 @@ function App() {
       <BlackSeaWeatherSite
         onUnlockRequest={(access) => {
           setPendingAccess(access);
-          setIsSecretEntryOpen(true);
+          setIsAccessEntryOpen(true);
         }}
       />
-      {isSecretEntryOpen && pendingAccess ? (
-        <Box className="secret-overlay">
-          <Box className="secret-overlay__panel">
+      {isAccessEntryOpen && pendingAccess ? (
+        <Box className="access-overlay">
+          <Box className="access-overlay__panel">
             <JoinRoom
               onJoinRoom={handleJoinRoom}
               roomId={pendingAccess.roomId}
@@ -141,7 +141,7 @@ function App() {
               dateCode={pendingAccess.dateCode}
               layout="panel"
               onCancel={() => {
-                setIsSecretEntryOpen(false);
+                setIsAccessEntryOpen(false);
                 setPendingAccess(null);
               }}
             />

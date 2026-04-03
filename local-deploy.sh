@@ -26,6 +26,8 @@ export VITE_TURN_SERVER="${VITE_TURN_SERVER}"
 export VITE_TURN_USERNAME="${VITE_TURN_USERNAME}"
 export VITE_TURN_PASSWORD="${VITE_TURN_PASSWORD}"
 export CORS_ORIGIN="${CORS_ORIGIN}"
+export BULLETIN_STORE_PATH="${BULLETIN_STORE_PATH:-/var/lib/messenger-backend/bulletins.json}"
+export BULLETIN_TTL_MINUTES="${BULLETIN_TTL_MINUTES:-4320}"
 
 echo "Starting local build and deploy for black-sea.org..."
 
@@ -58,14 +60,17 @@ scp -i "$SSH_KEY" -r ./dist-temp/. "$REMOTE_USER@$REMOTE_HOST:$REMOTE_TMP/"
 # --- 5. REMOTE PRODUCTION SWAP ---
 echo "Installing artifacts and restarting services..."
 ssh -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" \
-    "REMOTE_TMP='$REMOTE_TMP' REMOTE_BACKEND_PATH='$REMOTE_BACKEND_PATH' REMOTE_FRONTEND_PATH='$REMOTE_FRONTEND_PATH' CORS_ORIGIN='$CORS_ORIGIN' bash -s" <<'EOF'
+    "REMOTE_TMP='$REMOTE_TMP' REMOTE_BACKEND_PATH='$REMOTE_BACKEND_PATH' REMOTE_FRONTEND_PATH='$REMOTE_FRONTEND_PATH' CORS_ORIGIN='$CORS_ORIGIN' BULLETIN_STORE_PATH='$BULLETIN_STORE_PATH' BULLETIN_TTL_MINUTES='$BULLETIN_TTL_MINUTES' bash -s" <<'EOF'
 set -euo pipefail
 
 systemctl stop messenger-backend || true
 
 mkdir -p /etc/systemd/system/messenger-backend.service.d
+mkdir -p "$(dirname "$BULLETIN_STORE_PATH")"
 printf '[Service]\nEnvironment="CORS_ORIGIN=%s"\n' "$CORS_ORIGIN" \
   > /etc/systemd/system/messenger-backend.service.d/cors.conf
+printf '[Service]\nEnvironment="BULLETIN_STORE_PATH=%s"\nEnvironment="BULLETIN_TTL_MINUTES=%s"\n' "$BULLETIN_STORE_PATH" "$BULLETIN_TTL_MINUTES" \
+  > /etc/systemd/system/messenger-backend.service.d/bulletin.conf
 systemctl daemon-reload
 
 install -m 0755 "$REMOTE_TMP/messenger-backend" "$REMOTE_BACKEND_PATH"

@@ -124,7 +124,7 @@ Replace `/etc/nginx/nginx.conf` with the following (or add the `stream {}` block
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
-error_log /var/log/nginx/error.log;
+error_log /var/log/nginx/error.log error;
 include /etc/nginx/modules-enabled/*.conf;
 
 events {
@@ -139,7 +139,8 @@ http {
     default_type application/octet_stream;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
-    access_log /var/log/nginx/access.log;
+    log_format messenger_minimal '$remote_addr [$time_local] "$request_method $uri" $status';
+    access_log /var/log/nginx/access.log messenger_minimal;
     gzip on;
     include /etc/nginx/conf.d/*.conf;
     include /etc/nginx/sites-enabled/*;
@@ -205,12 +206,14 @@ server {
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_read_timeout 3600s;
+        access_log off;
     }
 
     # API proxy
     location /api/ {
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
+        access_log off;
     }
 
     # SPA fallback
@@ -276,6 +279,7 @@ cli-password=your-cli-password-here
 
 cipher-list="HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4"
 log-file=/var/log/coturn/turnserver.log
+no-stdout-log
 ```
 
 ```bash
@@ -285,6 +289,65 @@ systemctl enable coturn
 systemctl restart coturn
 systemctl is-active coturn
 ```
+
+## Step 5A — Logging retention and verbosity hardening
+
+The default config above is functional, but not yet aligned with the browser-side cleanup work. Two additional changes are recommended:
+
+1. nginx should keep only minimal HTTP request logs and should not log hidden-functionality paths such as `/ws` and `/api/`.
+2. coturn should write only to its own logfile, not duplicate to stdout/journald, and that logfile should be rotated aggressively.
+
+### nginx logging audit result
+
+- Current risk without hardening: `/ws` and `/api/rooms/...` requests are recorded in nginx access logs and can retain room-related traffic traces.
+- Recommended state: keep a minimal access log for normal decoy web traffic, disable access logging for `/ws` and `/api/`, and keep only short retention.
+
+Install the logrotate policy from this repo:
+
+```bash
+install -m 0644 /path/to/repo/ops/logrotate/nginx-messenger /etc/logrotate.d/nginx
+logrotate -f /etc/logrotate.d/nginx
+```
+
+Do not install this as a second file alongside the distro-provided nginx policy for the same log paths. Replace the existing `/etc/logrotate.d/nginx` entry instead.
+
+### coturn logging audit result
+
+- Current risk without hardening: coturn keeps relay/session metadata in `/var/log/coturn/turnserver.log` indefinitely unless rotation is configured.
+- Recommended state: do not enable `verbose`, keep `no-stdout-log`, log only to the dedicated file, and rotate that file aggressively.
+
+Install the logrotate policy from this repo:
+
+```bash
+install -m 0644 /path/to/repo/ops/logrotate/coturn-messenger /etc/logrotate.d/coturn
+logrotate -f /etc/logrotate.d/coturn
+```
+
+If the OS already ships `/etc/logrotate.d/coturn`, replace it instead of creating a second rule for the same logfile.
+
+### Verify effective logging state
+
+```bash
+# nginx should not emit /ws or /api requests into access.log after reload
+nginx -t && systemctl reload nginx
+tail -n 20 /var/log/nginx/access.log
+
+# coturn should only write to its file and should not duplicate into journald
+systemctl restart coturn
+journalctl -u coturn -n 20
+tail -n 20 /var/log/coturn/turnserver.log
+
+# inspect the installed retention policies
+logrotate -d /etc/logrotate.d/nginx
+logrotate -d /etc/logrotate.d/coturn
+```
+
+Expected result:
+
+- nginx access logs retain only minimal decoy-site requests
+- `/ws` and `/api/` traffic is absent from nginx access logs
+- coturn writes only to `/var/log/coturn/turnserver.log`
+- both nginx and coturn logs are rotated daily and only the latest 3 rotations are retained
 
 ---
 

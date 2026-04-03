@@ -34,7 +34,11 @@ interface CallRoomProps {
   onEndCall: () => void;
 }
 
-type FingerprintTrustState = "awaiting-peer" | "unverified" | "trusted" | "changed";
+type FingerprintTrustState =
+  | "awaiting-peer"
+  | "unverified"
+  | "trusted"
+  | "changed";
 
 export const CallRoom: React.FC<CallRoomProps> = ({
   roomId,
@@ -43,7 +47,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({
   onEndCall,
 }) => {
   const { t } = useTranslation();
-  const { messages, isConnected, sendMessage, assignedMode } = useWebSocket(roomId, mode);
+  const { messages, isConnected, sendMessage, assignedMode } = useWebSocket(
+    roomId,
+    mode,
+  );
   const isMobile = useBreakpointValue({ base: true, md: false });
   const effectiveMode = assignedMode ?? mode;
   const isAudioOnly = effectiveMode === "audio";
@@ -54,8 +61,11 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     audioMuted: false,
     videoMuted: false,
   });
-  const [trustState, setTrustState] = useState<FingerprintTrustState>("awaiting-peer");
-  const [trustedFingerprint, setTrustedFingerprint] = useState<string | null>(null);
+  const [trustState, setTrustState] =
+    useState<FingerprintTrustState>("awaiting-peer");
+  const [trustedFingerprint, setTrustedFingerprint] = useState<string | null>(
+    null,
+  );
   const [trustedAt, setTrustedAt] = useState<string | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -187,7 +197,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({
       return;
     }
 
-    const storedRecord = writeStoredPeerFingerprint(continuityHint, remoteFingerprint);
+    const storedRecord = writeStoredPeerFingerprint(
+      continuityHint,
+      remoteFingerprint,
+    );
     setTrustedFingerprint(storedRecord.fingerprint);
     setTrustedAt(storedRecord.verifiedAt);
     setTrustState("trusted");
@@ -236,9 +249,12 @@ export const CallRoom: React.FC<CallRoomProps> = ({
   const connectionStateLabel = t(`call.status.state.${connectionState}`, {
     defaultValue: connectionState,
   });
-  const localShortCodeLabel = localShortCode || t("call.verification.waitingCode");
-  const remoteShortCodeLabel = remoteShortCode || t("call.verification.waitingCode");
-  const previousShortCodeLabel = previousShortCode || t("call.verification.waitingCode");
+  const localShortCodeLabel =
+    localShortCode || t("call.verification.waitingCode");
+  const remoteShortCodeLabel =
+    remoteShortCode || t("call.verification.waitingCode");
+  const previousShortCodeLabel =
+    previousShortCode || t("call.verification.waitingCode");
 
   const fingerprintPanel = (
     <Box
@@ -255,7 +271,12 @@ export const CallRoom: React.FC<CallRoomProps> = ({
       <VStack align="stretch" gap={3}>
         <HStack justify="space-between" align="start" flexWrap="wrap">
           <VStack align="start" gap={1}>
-            <Text fontSize="xs" textTransform="uppercase" letterSpacing="0.14em" color="whiteAlpha.700">
+            <Text
+              fontSize="xs"
+              textTransform="uppercase"
+              letterSpacing="0.14em"
+              color="whiteAlpha.700"
+            >
               {t("call.verification.kicker")}
             </Text>
             <Text fontSize="sm" fontWeight="semibold" color="white">
@@ -281,7 +302,13 @@ export const CallRoom: React.FC<CallRoomProps> = ({
             bg="rgba(255,255,255,0.06)"
             p={3}
           >
-            <Text fontSize="2xs" textTransform="uppercase" letterSpacing="0.12em" color="whiteAlpha.700" mb={2}>
+            <Text
+              fontSize="2xs"
+              textTransform="uppercase"
+              letterSpacing="0.12em"
+              color="whiteAlpha.700"
+              mb={2}
+            >
               {t("call.verification.yourCode")}
             </Text>
             <Text fontFamily="mono" fontSize="sm" color="whiteAlpha.950">
@@ -295,7 +322,13 @@ export const CallRoom: React.FC<CallRoomProps> = ({
             bg="rgba(255,255,255,0.06)"
             p={3}
           >
-            <Text fontSize="2xs" textTransform="uppercase" letterSpacing="0.12em" color="whiteAlpha.700" mb={2}>
+            <Text
+              fontSize="2xs"
+              textTransform="uppercase"
+              letterSpacing="0.12em"
+              color="whiteAlpha.700"
+              mb={2}
+            >
               {t("call.verification.peerCode")}
             </Text>
             <Text fontFamily="mono" fontSize="sm" color="whiteAlpha.950">
@@ -305,8 +338,19 @@ export const CallRoom: React.FC<CallRoomProps> = ({
         </Stack>
 
         {trustState === "changed" && trustedFingerprint ? (
-          <Box borderRadius="lg" border="1px solid rgba(255,255,255,0.12)" bg="rgba(255,255,255,0.05)" p={3}>
-            <Text fontSize="2xs" textTransform="uppercase" letterSpacing="0.12em" color="whiteAlpha.700" mb={2}>
+          <Box
+            borderRadius="lg"
+            border="1px solid rgba(255,255,255,0.12)"
+            bg="rgba(255,255,255,0.05)"
+            p={3}
+          >
+            <Text
+              fontSize="2xs"
+              textTransform="uppercase"
+              letterSpacing="0.12em"
+              color="whiteAlpha.700"
+              mb={2}
+            >
               {t("call.verification.previousCode")}
             </Text>
             <Text fontFamily="mono" fontSize="sm" color="whiteAlpha.900">
@@ -319,17 +363,26 @@ export const CallRoom: React.FC<CallRoomProps> = ({
           <HStack gap={3} flexWrap="wrap">
             <Button
               size="sm"
-              bg={trustState === "changed" ? "red.500" : "rgba(191, 143, 73, 0.24)"}
+              bg={
+                trustState === "changed"
+                  ? "red.500"
+                  : "rgba(191, 143, 73, 0.24)"
+              }
               color="white"
               border="1px solid rgba(255,255,255,0.16)"
-              _hover={{ bg: trustState === "changed" ? "red.600" : "rgba(191, 143, 73, 0.34)" }}
+              _hover={{
+                bg:
+                  trustState === "changed"
+                    ? "red.600"
+                    : "rgba(191, 143, 73, 0.34)",
+              }}
               onClick={handleTrustFingerprint}
             >
               {trustState === "changed"
                 ? t("call.verification.actions.trustNew")
                 : t("call.verification.actions.markVerified")}
             </Button>
-            {(trustState === "trusted" || trustState === "changed") ? (
+            {trustState === "trusted" || trustState === "changed" ? (
               <Button
                 size="sm"
                 variant="outline"
@@ -347,20 +400,32 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     </Box>
   );
 
-  const hiddenMediaElements = isAudioOnly ? (
+  const offscreenMediaElements = isAudioOnly ? (
     <>
       <video
         ref={localVideoRef}
         autoPlay
         muted
         playsInline
-        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
       />
       <video
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
       />
     </>
   ) : null;
@@ -377,7 +442,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({
       overflow="hidden"
       style={{ touchAction: "none" }}
     >
-      {hiddenMediaElements}
+      {offscreenMediaElements}
 
       <Box
         position="absolute"
@@ -455,24 +520,15 @@ export const CallRoom: React.FC<CallRoomProps> = ({
           )}
         </Box>
       ) : (
-        <Box position="absolute" inset={0} display="flex" alignItems="center" justifyContent="center" zIndex={1} pointerEvents="none">
-          <VStack gap={4}>
-            <Box
-              width="7rem"
-              height="7rem"
-              borderRadius="full"
-              border="1px solid rgba(255,255,255,0.16)"
-              bg="rgba(255,255,255,0.08)"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              fontSize="2.4rem"
-              color="white"
-            >
-              ♪
-            </Box>
-          </VStack>
-        </Box>
+        <Box
+          position="absolute"
+          inset={0}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          zIndex={1}
+          pointerEvents="none"
+        ></Box>
       )}
 
       {(remoteStatus.audioMuted || remoteStatus.videoMuted) && (
@@ -489,8 +545,12 @@ export const CallRoom: React.FC<CallRoomProps> = ({
           backdropFilter="blur(10px)"
         >
           <HStack gap={3} fontSize="sm" color="white">
-            {remoteStatus.audioMuted && <Text>🔇 {t("call.status.peerMuted")}</Text>}
-            {!isAudioOnly && remoteStatus.videoMuted && <Text>📵 {t("call.status.peerVideoOff")}</Text>}
+            {remoteStatus.audioMuted && (
+              <Text>🔇 {t("call.status.peerMuted")}</Text>
+            )}
+            {!isAudioOnly && remoteStatus.videoMuted && (
+              <Text>📵 {t("call.status.peerVideoOff")}</Text>
+            )}
           </HStack>
         </Box>
       )}
@@ -543,7 +603,11 @@ export const CallRoom: React.FC<CallRoomProps> = ({
               backdropFilter="blur(10px)"
               _hover={{ bg: videoMuted ? "gray.200" : "whiteAlpha.400" }}
             >
-              {videoMuted ? <MdVideocamOff size="24px" /> : <MdVideocam size="24px" />}
+              {videoMuted ? (
+                <MdVideocamOff size="24px" />
+              ) : (
+                <MdVideocam size="24px" />
+              )}
             </IconButton>
           ) : null}
         </HStack>
@@ -553,12 +617,14 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     <VStack
       gap={6}
       p={8}
-      bg="green.700"
-      borderRadius="xl"
-      color="white"
-      boxShadow="lg"
+      width="min(100%, 72rem)"
+      bg="var(--weather-panel-bg)"
+      border="1px solid var(--weather-panel-border)"
+      borderRadius="1.5rem"
+      color="var(--weather-text-main)"
+      boxShadow="var(--weather-panel-shadow)"
+      backdropFilter="blur(18px)"
       align="center"
-      maxW="1000px"
       mx="auto"
     >
       {isConnected ? (
@@ -567,46 +633,25 @@ export const CallRoom: React.FC<CallRoomProps> = ({
 
           <VStack gap={1}>
             <HStack gap={4}>
-              <Text fontSize="sm" opacity={0.9}>
-                {t("call.status.connectionLabel")}: <b>{connectionStateLabel}</b>
+              <Text fontSize="sm" color="var(--weather-text-soft)">
+                {t("call.status.connectionLabel")}:{" "}
+                <b>{connectionStateLabel}</b>
               </Text>
               <Box
                 w="10px"
                 h="10px"
                 borderRadius="full"
-                bg={connectionState === "connected" ? "green.400" : "yellow.400"}
+                bg={
+                  connectionState === "connected" ? "green.400" : "yellow.400"
+                }
               />
             </HStack>
           </VStack>
 
-          {hiddenMediaElements}
+          {offscreenMediaElements}
 
           {isAudioOnly ? (
-            <Box
-              mt={4}
-              width="full"
-              maxW="36rem"
-              borderRadius="1rem"
-              border="1px solid rgba(255,255,255,0.12)"
-              bg="rgba(4, 18, 28, 0.34)"
-              p={10}
-            >
-              <VStack gap={4}>
-                <Box
-                  width="6rem"
-                  height="6rem"
-                  borderRadius="full"
-                  border="1px solid rgba(255,255,255,0.18)"
-                  bg="rgba(255,255,255,0.08)"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  fontSize="2rem"
-                >
-                  ♪
-                </Box>
-              </VStack>
-            </Box>
+            <Box></Box>
           ) : (
             <Stack direction={{ base: "column", md: "row" }} gap={6} mt={4}>
               <Box textAlign="center" position="relative">
@@ -621,7 +666,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({
                     height: "225px",
                     transform: "scaleX(-1)",
                     borderRadius: "12px",
-                    border: "2px solid rgba(255,255,255,0.2)",
+                    border: "2px solid rgba(205, 228, 236, 0.2)",
                     backgroundColor: "black",
                   }}
                 />
@@ -637,7 +682,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({
                     width: "300px",
                     height: "225px",
                     borderRadius: "12px",
-                    border: "2px solid rgba(255,255,255,0.2)",
+                    border: "2px solid rgba(205, 228, 236, 0.2)",
                     backgroundColor: "black",
                   }}
                 />
@@ -663,10 +708,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({
               onClick={toggleAudio}
               size="lg"
               rounded="full"
-              bg={audioMuted ? "red.500" : "whiteAlpha.300"}
-              color="white"
+              bg={audioMuted ? "white" : "whiteAlpha.300"}
+              color={audioMuted ? "black" : "white"}
               backdropFilter="blur(10px)"
-              _hover={{ bg: audioMuted ? "red.600" : "whiteAlpha.400" }}
+              _hover={{ bg: audioMuted ? "gray.200" : "whiteAlpha.400" }}
             >
               {audioMuted ? <MdMicOff /> : <MdMic />}
             </IconButton>
@@ -690,10 +735,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({
                 onClick={toggleVideo}
                 size="lg"
                 rounded="full"
-                bg={videoMuted ? "red.500" : "whiteAlpha.300"}
-                color="white"
+                bg={videoMuted ? "white" : "whiteAlpha.300"}
+                color={videoMuted ? "black" : "white"}
                 backdropFilter="blur(10px)"
-                _hover={{ bg: videoMuted ? "red.600" : "whiteAlpha.400" }}
+                _hover={{ bg: videoMuted ? "gray.200" : "whiteAlpha.400" }}
               >
                 {videoMuted ? <MdVideocamOff /> : <MdVideocam />}
               </IconButton>
@@ -703,7 +748,9 @@ export const CallRoom: React.FC<CallRoomProps> = ({
       ) : (
         <VStack p={10}>
           <Spinner size="xl" />
-          <Text mt={4}>{t("call.status.establishing")}</Text>
+          <Text mt={4} color="var(--weather-text-soft)">
+            {t("call.status.establishing")}
+          </Text>
         </VStack>
       )}
     </VStack>
