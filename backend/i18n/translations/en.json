@@ -268,7 +268,9 @@
       "actions": {
         "trustNew": "Trust new fingerprint",
         "markVerified": "Mark verified",
-        "clearSavedTrust": "Clear saved trust"
+        "clearSavedTrust": "Clear saved trust",
+        "openPanel": "View codes",
+        "closePanel": "Close verification"
       }
     },
     "status": {

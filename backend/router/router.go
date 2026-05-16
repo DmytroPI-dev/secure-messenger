@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -23,6 +24,12 @@ type Message struct {
 var roomManager = room.NewRoomManager()
 
 var bulletinStore *bulletin.Store
+
+const (
+	websocketWriteWait = 10 * time.Second
+	websocketPongWait  = 45 * time.Second
+	websocketPingEvery = (websocketPongWait * 9) / 10
+)
 
 // allowedOrigins builds the set of permitted WebSocket origins from the
 // CORS_ORIGIN environment variable (comma-separated) plus the local dev origin.
@@ -173,20 +180,34 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	conn := &room.SafeConnection{Conn: rawConn}
+	stopHeartbeat := startConnectionHeartbeat(conn)
+	defer close(stopHeartbeat)
 
 	defer func() {
+		conn.MarkClosed()
 		if currentRoomId != "" {
-			roomManager.LeaveRoom(currentRoomId, conn)
-			log.Printf("client disconnected from active room")
+			remaining := roomManager.LeaveRoom(currentRoomId, conn)
+			log.Printf("client disconnected from active room: room=%s client=%s remaining=%d", currentRoomId, conn.ClientId, remaining)
 		}
 	}()
 
 	defer conn.Close()
 
+	conn.SetReadDeadline(time.Now().Add(websocketPongWait))
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(websocketPongWait))
+	})
+	defaultCloseHandler := conn.CloseHandler()
+	conn.SetCloseHandler(func(code int, text string) error {
+		conn.MarkClosed()
+		return defaultCloseHandler(code, text)
+	})
+
 	for {
 		var msg Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
+			conn.MarkClosed()
 			log.Println(err)
 			break
 		}
@@ -205,35 +226,71 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			// JoinRoom handles creation, locking, AND role assignment
 			joinResult, err := roomManager.JoinRoom(msg.RoomId, joinData.ClientId, joinData.Mode, conn)
 			if err != nil {
+				log.Printf("join failed: room=%s client=%s mode=%s error=%v", msg.RoomId, joinData.ClientId, joinData.Mode, err)
 				conn.WriteJSON(gin.H{"error": err.Error()})
 				return
 			}
+			log.Printf("join completed: room=%s client=%s role=%s mode=%s occupants=%d", msg.RoomId, joinData.ClientId, joinResult.Role, joinResult.Mode, joinResult.Occupancy)
 			roleMsg := map[string]any{
 				"type": "role",
 				"data": map[string]string{"role": joinResult.Role, "mode": joinResult.Mode},
 			}
 			conn.WriteJSON(roleMsg)
 		case "signal":
+			var signalMeta struct {
+				Type string `json:"type"`
+			}
+			if err := json.Unmarshal(msg.Data, &signalMeta); err != nil {
+				log.Printf("signal parse failed: room=%s client=%s error=%v", msg.RoomId, conn.ClientId, err)
+			} else {
+				log.Printf("signal received: room=%s client=%s signal=%s", msg.RoomId, conn.ClientId, signalMeta.Type)
+			}
 			data, _ := json.Marshal(gin.H{"type": "signal", "data": msg.Data})
 			roomManager.Broadcast(msg.RoomId, data, conn)
 		case "chat":
 			data, _ := json.Marshal(gin.H{"type": "chat", "data": msg.Data})
 			roomManager.Broadcast(msg.RoomId, data, conn)
 		case "peer-status":
+			log.Printf("peer status received: room=%s client=%s", msg.RoomId, conn.ClientId)
 			data, _ := json.Marshal(gin.H{"type": "peer-status", "data": msg.Data})
 			roomManager.Broadcast(msg.RoomId, data, conn)
 		case "end-call":
+			log.Printf("end call received: room=%s client=%s", msg.RoomId, conn.ClientId)
 			data, _ := json.Marshal(gin.H{"type": "call-ended"})
 			roomManager.Broadcast(msg.RoomId, data, conn)
 			// Remove this connection first to ensure the "call-ended" message is sent to the peer before the room is potentially deleted
-			roomManager.LeaveRoom(msg.RoomId, conn)
+			remaining := roomManager.LeaveRoom(msg.RoomId, conn)
 			// Then permanently delete the room
 			roomManager.DeleteRoom(msg.RoomId)
 			currentRoomId = ""
-			log.Printf("call ended and room closed")
+			log.Printf("call ended and room closed: room=%s client=%s remaining_before_delete=%d", msg.RoomId, conn.ClientId, remaining)
 			return
 		default:
 			log.Printf("Unknown message type: %s", msg.Type)
 		}
 	}
+}
+
+func startConnectionHeartbeat(conn *room.SafeConnection) chan struct{} {
+	stop := make(chan struct{})
+
+	go func() {
+		ticker := time.NewTicker(websocketPingEvery)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				if err := conn.WriteControl(websocket.PingMessage, []byte("ping"), time.Now().Add(websocketWriteWait)); err != nil {
+					conn.MarkClosed()
+					_ = conn.Close()
+					return
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	return stop
 }

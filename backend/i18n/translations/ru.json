@@ -268,7 +268,9 @@
       "actions": {
         "trustNew": "Доверять новому отпечатку",
         "markVerified": "Подтвердить",
-        "clearSavedTrust": "Сбросить доверие"
+        "clearSavedTrust": "Сбросить доверие",
+        "openPanel": "Показать коды",
+        "closePanel": "Закрыть проверку"
       }
     },
     "status": {

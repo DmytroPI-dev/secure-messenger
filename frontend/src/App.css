@@ -440,13 +440,18 @@ html.light {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
   background: rgba(3, 9, 14, 0.68);
   backdrop-filter: blur(14px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .access-overlay__panel {
   width: min(100%, 32rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
   border-radius: 1.5rem;
   padding: 1.4rem;
 }
@@ -580,5 +585,15 @@ html.light {
   .hour-row {
     gap: 0.45rem;
     flex-wrap: wrap;
+  }
+}
+
+@media (max-height: 760px) {
+  .access-overlay {
+    align-items: flex-start;
+  }
+
+  .access-overlay__panel {
+    margin: 0 auto;
   }
 }

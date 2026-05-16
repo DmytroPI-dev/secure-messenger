@@ -13,6 +13,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import {
   MdCallEnd,
+  MdClose,
+  MdInfoOutline,
   MdMic,
   MdMicOff,
   MdVideocam,
@@ -47,6 +49,14 @@ export const CallRoom: React.FC<CallRoomProps> = ({
   onEndCall,
 }) => {
   const { t } = useTranslation();
+  const logCallAction = (event: string, details?: unknown) => {
+    if (details === undefined) {
+      console.log(`[call-ui:${roomId}] ${event}`);
+      return;
+    }
+
+    console.log(`[call-ui:${roomId}] ${event}`, details);
+  };
   const { messages, isConnected, sendMessage, assignedMode } = useWebSocket(
     roomId,
     mode,
@@ -67,6 +77,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     null,
   );
   const [trustedAt, setTrustedAt] = useState<string | null>(null);
+  const [isVerificationOpen, setIsVerificationOpen] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const hasStoppedRef = useRef(false);
@@ -117,6 +128,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({
   };
 
   const handleEndCall = () => {
+    logCallAction("local end requested", {
+      connectionState,
+      hasStopped: hasStoppedRef.current,
+    });
     if (!hasStoppedRef.current) {
       hasStoppedRef.current = true;
       stopCall();
@@ -184,6 +199,10 @@ export const CallRoom: React.FC<CallRoomProps> = ({
       });
     }
     if (lastMsg?.type === "call-ended") {
+      logCallAction("remote end received", {
+        connectionState,
+        hasStopped: hasStoppedRef.current,
+      });
       if (!hasStoppedRef.current) {
         hasStoppedRef.current = true;
         stopCall();
@@ -255,6 +274,7 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     remoteShortCode || t("call.verification.waitingCode");
   const previousShortCodeLabel =
     previousShortCode || t("call.verification.waitingCode");
+  const showInlineVerification = isAudioOnly;
 
   const fingerprintPanel = (
     <Box
@@ -400,6 +420,94 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     </Box>
   );
 
+  const verificationTrigger = isMobile ? (
+    <IconButton
+      aria-label={t("call.verification.actions.openPanel")}
+      onClick={() => setIsVerificationOpen(true)}
+      size="md"
+      rounded="full"
+      bg="blackAlpha.700"
+      color="white"
+      border="1px solid rgba(255,255,255,0.18)"
+      backdropFilter="blur(10px)"
+      _hover={{ bg: "blackAlpha.800" }}
+    >
+      <MdInfoOutline />
+    </IconButton>
+  ) : (
+    <Button
+      size="sm"
+      rounded="full"
+      bg="var(--weather-chip-bg)"
+      color="var(--weather-text-main)"
+      border="1px solid var(--weather-chip-border)"
+      _hover={{ bg: "var(--weather-chip-hover-bg)" }}
+      onClick={() => setIsVerificationOpen(true)}
+    >
+      <HStack gap={2}>
+        <MdInfoOutline />
+        <Text>{t("call.verification.actions.openPanel")}</Text>
+      </HStack>
+    </Button>
+  );
+
+  const verificationOverlay = isVerificationOpen ? (
+    <Box
+      position="fixed"
+      inset={0}
+      zIndex={10000}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      px={4}
+      py={{ base: "max(16px, env(safe-area-inset-top))", md: 6 }}
+      bg="rgba(3, 9, 14, 0.74)"
+      backdropFilter="blur(16px)"
+      overflowY="auto"
+    >
+      <Box
+        width="min(100%, 46rem)"
+        maxH="calc(100dvh - 2rem)"
+        overflowY="auto"
+        borderRadius="1.4rem"
+        border="1px solid var(--weather-panel-border)"
+        bg="var(--weather-panel-bg)"
+        boxShadow="var(--weather-panel-shadow)"
+        backdropFilter="blur(18px)"
+        p={{ base: 4, md: 5 }}
+      >
+        <HStack justify="space-between" align="start" mb={4} gap={3}>
+          <VStack align="start" gap={1}>
+            <Text
+              fontSize="xs"
+              textTransform="uppercase"
+              letterSpacing="0.14em"
+              color="var(--weather-text-subtle)"
+            >
+              {t("call.verification.kicker")}
+            </Text>
+            <Text fontSize="lg" fontWeight="semibold" color="var(--weather-text-main)">
+              {trustHeading}
+            </Text>
+          </VStack>
+          <IconButton
+            aria-label={t("call.verification.actions.closePanel")}
+            onClick={() => setIsVerificationOpen(false)}
+            size="sm"
+            rounded="full"
+            bg="var(--weather-chip-bg)"
+            color="var(--weather-text-main)"
+            border="1px solid var(--weather-chip-border)"
+            _hover={{ bg: "var(--weather-chip-hover-bg)" }}
+          >
+            <MdClose />
+          </IconButton>
+        </HStack>
+        {fingerprintPanel}
+      </Box>
+    </Box>
+  ) : null;
+
   const offscreenMediaElements = isAudioOnly ? (
     <>
       <video
@@ -444,15 +552,42 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     >
       {offscreenMediaElements}
 
-      <Box
-        position="absolute"
-        top="max(16px, env(safe-area-inset-top))"
-        left="16px"
-        right="16px"
-        zIndex={3}
-      >
-        {fingerprintPanel}
-      </Box>
+      {showInlineVerification ? (
+        <Box
+          position="absolute"
+          top="max(16px, env(safe-area-inset-top))"
+          left="16px"
+          right="16px"
+          zIndex={3}
+        >
+          {fingerprintPanel}
+        </Box>
+      ) : (
+        <HStack
+          position="absolute"
+          top="max(16px, env(safe-area-inset-top))"
+          left="16px"
+          right="16px"
+          zIndex={3}
+          justify="space-between"
+          align="center"
+        >
+          {verificationTrigger}
+          <Box
+            bg="blackAlpha.700"
+            color="white"
+            px={3}
+            py={1.5}
+            borderRadius="full"
+            backdropFilter="blur(10px)"
+            border="1px solid rgba(255,255,255,0.18)"
+          >
+            <Text fontSize="xs">
+              {t("call.status.connectionLabel")}: <b>{connectionStateLabel}</b>
+            </Text>
+          </Box>
+        </HStack>
+      )}
 
       {isAudioOnly ? (
         <Box
@@ -612,6 +747,8 @@ export const CallRoom: React.FC<CallRoomProps> = ({
           ) : null}
         </HStack>
       </Box>
+
+      {verificationOverlay}
     </Box>
   ) : (
     <VStack
@@ -629,10 +766,8 @@ export const CallRoom: React.FC<CallRoomProps> = ({
     >
       {isConnected ? (
         <>
-          {fingerprintPanel}
-
           <VStack gap={1}>
-            <HStack gap={4}>
+            <HStack gap={4} flexWrap="wrap" justify="center">
               <Text fontSize="sm" color="var(--weather-text-soft)">
                 {t("call.status.connectionLabel")}:{" "}
                 <b>{connectionStateLabel}</b>
@@ -645,8 +780,11 @@ export const CallRoom: React.FC<CallRoomProps> = ({
                   connectionState === "connected" ? "green.400" : "yellow.400"
                 }
               />
+              {!showInlineVerification ? verificationTrigger : null}
             </HStack>
           </VStack>
+
+          {showInlineVerification ? fingerprintPanel : null}
 
           {offscreenMediaElements}
 
@@ -753,6 +891,8 @@ export const CallRoom: React.FC<CallRoomProps> = ({
           </Text>
         </VStack>
       )}
+
+      {verificationOverlay}
     </VStack>
   );
 };

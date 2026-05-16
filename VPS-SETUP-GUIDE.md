@@ -373,6 +373,8 @@ The loopback SNAT rule fixes this by rewriting the source to `<YOUR_VPS_IP>` bef
 
 On Oracle Cloud this is handled automatically by the hypervisor NAT. On a bare-metal/AlexHost VPS it must be done manually.
 
+> Scope note: the four NAT rules below are the documented fix for UDP relay hairpining on a directly-addressed VPS. If you force browsers onto `turns:443?transport=tcp` for restrictive networks, validate TCP relay and same-server hairpin behavior separately instead of assuming the UDP rules are sufficient.
+
 ### Apply the rules
 
 ```bash
@@ -499,19 +501,36 @@ Both deployment paths preserve the existing `media/` directory on the server, so
 
 ### TURN credentials in the frontend
 
-The frontend reads three Vite env vars at build time:
+The frontend reads these Vite env vars at build time:
 
 | Variable | Default in `local-deploy.sh` |
 |---|---|
 | `VITE_TURN_SERVER` | `<YOUR_TURN_DOMAIN>` |
 | `VITE_TURN_USERNAME` | `<YOUR_TURN_USERNAME>` |
 | `VITE_TURN_PASSWORD` | `<YOUR_TURN_PASSWORD>` |
+| `VITE_TURN_FORCE_TLS_443` | unset / `false` |
+| `VITE_TURN_URLS` | unset |
 
 Override before running the script if needed:
 ```bash
 export VITE_TURN_SERVER=turn.example.com
 export VITE_TURN_USERNAME=myuser
 export VITE_TURN_PASSWORD=mypassword
+bash local-deploy.sh
+```
+
+For aggressive networks that block UDP and most non-443 egress, rebuild the frontend with only TURN over TLS on 443:
+
+```bash
+export VITE_TURN_FORCE_TLS_443=true
+unset VITE_TURN_URLS
+bash local-deploy.sh
+```
+
+If you need an explicit custom order or a single pinned endpoint, set `VITE_TURN_URLS` as a comma-separated list instead. Example:
+
+```bash
+export VITE_TURN_URLS='turns:turn.example.com:443?transport=tcp'
 bash local-deploy.sh
 ```
 

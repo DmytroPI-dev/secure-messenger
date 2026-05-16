@@ -268,7 +268,9 @@
       "actions": {
         "trustNew": "Yeni parmak izine güven",
         "markVerified": "Doğrulandı olarak işaretle",
-        "clearSavedTrust": "Kayıtlı güveni temizle"
+        "clearSavedTrust": "Kayıtlı güveni temizle",
+        "openPanel": "Kodları göster",
+        "closePanel": "Doğrulamayı kapat"
       }
     },
     "status": {
