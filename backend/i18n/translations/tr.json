@@ -1,0 +1,327 @@
+{
+  "app": {
+    "title": "Karadeniz Hava Durumu"
+  },
+  "language": {
+    "label": "Dil",
+    "en": "English",
+    "ru": "Русский",
+    "tr": "Türkçe"
+  },
+  "weather": {
+    "kicker": "Karadeniz Hava Durumu",
+    "heroTitle": "Deniz hava durumu, rüzgar ve günlük koşullar.",
+    "heroDescription": "Karadeniz'deki limanlar, plajlar, marinalar ve sahil gezileri için tahminler.",
+    "searchLabel": "İstasyon ara",
+    "searchPlaceholder": "Örn: Soçi, Varna, Batum, Sinop...",
+    "noStationMatchTitle": "Bulunamadı",
+    "noStationMatchBody": "Başka bir şehir dene veya ülkeye göre ara.",
+    "selectedStation": "Seçili istasyon",
+    "currentConditions": "Şu an",
+    "updatedFeed": "Hava durumu akışından güncellendi.",
+    "issuedAt": "Güncelleme: {{time}} {{timezone}}",
+    "loading": "Tahmin yükleniyor...",
+    "errors": {
+      "forecastUnavailable": "Tahmin şu an yüklenemiyor.",
+      "invalidResponse": "Hava durumu servisinden hatalı yanıt geldi.",
+      "loadFailed": "Veri yüklenemedi."
+    },
+    "metrics": {
+      "air": "Hava",
+      "sea": "Deniz",
+      "wind": "Rüzgar",
+      "conditions": "Durum",
+      "feelsLike": "Hissedilen",
+      "humidity": "Nem",
+      "waveHeight": "Dalga yüksekliği",
+      "wavePeriod": "Dalga periyodu",
+      "waveDirection": "Dalga yönü"
+    },
+    "sevenDayTitle": "7 günlük tahmin",
+    "sunrise": "Gündoğumu {{time}}",
+    "sunset": "Günbatımı {{time}}",
+    "hourlyKicker": "Saatlik durum",
+    "hourlyTitle": "Rüzgar ve dalgalar",
+    "hourlyEmpty": "Saatlik durum burada gösterilecek.",
+    "regionalNote": "İpucu",
+    "regionalNoteTitle": "Gezi planlarken",
+    "regionalNoteBody": "Rüzgar, dalga ve yağmuru birlikte izle. Sabah sakin deniz, öğleden sonra rüzgar çıkınca hızla bozabilir.",
+    "stationSummary": "Karadeniz limanları, plajları, marinaları ve sahil gezileri için hava durumu.",
+    "dataSource": "Seçilen istasyon için Open-Meteo hava durumu servisi verileri.",
+    "rainChance": "Yağış {{value}}%",
+    "windSpeed": "Rüzgar {{value}} km/h",
+    "info": {
+      "buttonLabel": "Bu sayfa nasıl kullanılır",
+      "kicker": "Kullanım rehberi",
+      "title": "Nasıl kullanılır",
+      "description": "İstasyon ara veya aşağıdan seç. Şehir veya ülke adına göre arama yapabilirsin.",
+      "exampleLabel": "Hızlı başlangıç",
+      "example": "Varna veya Batum gibi bir şehir adı yaz ya da bir istasyona tıkla.",
+      "stationsTitle": "Kullanılabilir istasyonlar",
+      "close": "Kapat"
+    },
+    "locations": {
+      "odessa": {
+        "name": "Odessa",
+        "country": "Ukrayna"
+      },
+      "chornomorsk": {
+        "name": "Chornomorsk",
+        "country": "Ukrayna"
+      },
+      "yuzhne": {
+        "name": "Yuzhne",
+        "country": "Ukrayna"
+      },
+      "skadovsk": {
+        "name": "Skadovsk",
+        "country": "Ukrayna"
+      },
+      "sulina": {
+        "name": "Sulina",
+        "country": "Romanya"
+      },
+      "constanta": {
+        "name": "Köstence",
+        "country": "Romanya"
+      },
+      "mangalia": {
+        "name": "Mangalya",
+        "country": "Romanya"
+      },
+      "balchik": {
+        "name": "Balçık",
+        "country": "Bulgaristan"
+      },
+      "varna": {
+        "name": "Varna",
+        "country": "Bulgaristan"
+      },
+      "nessebar": {
+        "name": "Nesebar",
+        "country": "Bulgaristan"
+      },
+      "burgas": {
+        "name": "Burgaz",
+        "country": "Bulgaristan"
+      },
+      "sozopol": {
+        "name": "Sozopol",
+        "country": "Bulgaristan"
+      },
+      "tsarevo": {
+        "name": "Tsarevo",
+        "country": "Bulgaristan"
+      },
+      "igneada": {
+        "name": "İğneada",
+        "country": "Türkiye"
+      },
+      "sile": {
+        "name": "Şile",
+        "country": "Türkiye"
+      },
+      "zonguldak": {
+        "name": "Zonguldak",
+        "country": "Türkiye"
+      },
+      "amasra": {
+        "name": "Amasra",
+        "country": "Türkiye"
+      },
+      "sinop": {
+        "name": "Sinop",
+        "country": "Türkiye"
+      },
+      "samsun": {
+        "name": "Samsun",
+        "country": "Türkiye"
+      },
+      "ordu": {
+        "name": "Ordu",
+        "country": "Türkiye"
+      },
+      "giresun": {
+        "name": "Giresun",
+        "country": "Türkiye"
+      },
+      "trabzon": {
+        "name": "Trabzon",
+        "country": "Türkiye"
+      },
+      "rize": {
+        "name": "Rize",
+        "country": "Türkiye"
+      },
+      "hopa": {
+        "name": "Hopa",
+        "country": "Türkiye"
+      },
+      "batumi": {
+        "name": "Batum",
+        "country": "Gürcistan"
+      },
+      "kobuleti": {
+        "name": "Kobuleti",
+        "country": "Gürcistan"
+      },
+      "poti": {
+        "name": "Poti",
+        "country": "Gürcistan"
+      },
+      "sochi": {
+        "name": "Soçi",
+        "country": "Rusya"
+      },
+      "tuapse": {
+        "name": "Tuapse",
+        "country": "Rusya"
+      },
+      "gelendzhik": {
+        "name": "Gelencik",
+        "country": "Rusya"
+      },
+      "novorossiysk": {
+        "name": "Novorossiysk",
+        "country": "Rusya"
+      },
+      "anapa": {
+        "name": "Anapa",
+        "country": "Rusya"
+      }
+    }
+  },
+  "gate": {
+    "heading": "",
+    "status": {
+      "roomEmpty": "Oda boş",
+      "peerWaiting": "Karşı taraf seni bekliyor",
+      "checking": "Oda kontrol ediliyor..."
+    },
+    "callMode": "Arama modu",
+    "audioOnly": "Yalnızca ses",
+    "video": "Video",
+    "modeLocked": "İlk katılımcı {{mode}} modunu ayarladı.",
+    "lockedMode": {
+      "audio": "yalnızca ses",
+      "video": "video"
+    },
+    "openDoor": "Kapıyı aç",
+    "returnToForecast": "İptal",
+    "bulletin": {
+      "kicker": "Not bırak",
+      "heading": "Yorum bırak",
+      "description": "",
+      "storeTitle": "Mesaj bırak",
+      "readTitle": "Mesajı oku",
+      "emojiLabels": {
+        "store": "Mesaj bırak",
+        "read": "Mesajı oku"
+      },
+      "placeholders": {
+        "storeCode": "",
+        "readCode": "",
+        "text": "Yazın deniz ne kadar güzel!"
+      },
+      "textLimit": "En fazla {{count}} karakter.",
+      "actions": {
+        "save": "Kaydet",
+        "read": "Oku",
+        "cancel": "İptal",
+        "close": "Kapat",
+        "showCode": "Göster",
+        "hideCode": "Gizle"
+      },
+      "feedback": {
+        "storeSuccess": "Mesaj kaydedildi. Bu koddaki eski mesaj değiştirildi.",
+        "invalidInput": "Kodu, tarihi, saati ve mesajı kontrol et.",
+        "storeError": "Mesaj kaydedilemedi.",
+        "readBlocked": "Aynı oturumda kaydettikten hemen sonra okuyamazsın.",
+        "readMiss": "Bu kod için mesaj yok.",
+        "readError": "Mesaj açılamadı.",
+        "readSuccess": "Mesaj alındı ve sunucudan silindi."
+      },
+      "retrievedTitle": "Alınan uyarı",
+      "retrievedHint": "Bu uyarı alındıktan sonra kaldırıldı."
+    }
+  },
+  "call": {
+    "verification": {
+      "kicker": "Eş doğrulaması",
+      "heading": {
+        "trusted": "Eş kodu doğrulandı",
+        "changed": "Eş kodu değişti",
+        "waiting": "Eş kodu bekleniyor",
+        "unverified": "Eş kodunu doğrulayın"
+      },
+      "description": {
+        "trusted": "Kayıtlı parmak izi eşleşiyor. Bir şey değiştiyse tekrar doğrula.",
+        "changed": "Kayıtlı parmak izi eşleşmiyor! Doğrulayıp güncelleyene kadar bu oturuma güvenme.",
+        "waiting": "Arama bağlanıyor. Kod hazır olunca görünecek.",
+        "unverified": "Kodunu karşıdaki kişinin koduyla karşılaştır, sonra doğrulandı olarak işaretle."
+      },
+      "storedAt": "Kaydedildi {{time}}",
+      "yourCode": "Kısa kodunuz",
+      "peerCode": "Eş kısa kodu",
+      "previousCode": "Önceden güvenilen kod",
+      "waitingCode": "Kod bekleniyor...",
+      "actions": {
+        "trustNew": "Yeni parmak izine güven",
+        "markVerified": "Doğrulandı olarak işaretle",
+        "clearSavedTrust": "Kayıtlı güveni temizle",
+        "openPanel": "Kodları göster",
+        "closePanel": "Doğrulamayı kapat"
+      }
+    },
+    "status": {
+      "connectionLabel": "Bağlantı durumu",
+      "establishing": "Bağlantı kuruluyor...",
+      "peerMuted": "Eş sesi kapattı",
+      "peerVideoOff": "Eş videosu kapalı",
+      "state": {
+        "new": "yeni",
+        "connecting": "bağlanıyor",
+        "connected": "bağlandı",
+        "disconnected": "bağlantı koptu",
+        "failed": "başarısız",
+        "closed": "kapalı"
+      }
+    },
+    "controls": {
+      "toggleAudio": "Sesi değiştir",
+      "toggleVideo": "Videoyu değiştir",
+      "endCall": "Aramayı bitir"
+    }
+  },
+  "weatherCodes": {
+    "0": "Açık",
+    "1": "Çoğunlukla açık",
+    "2": "Parçalı bulutlu",
+    "3": "Kapalı",
+    "45": "Sis",
+    "48": "Kırağılı sis",
+    "51": "Hafif çisenti",
+    "53": "Çisenti",
+    "55": "Yoğun çisenti",
+    "56": "Dondurucu çisenti",
+    "57": "Yoğun dondurucu çisenti",
+    "61": "Hafif yağmur",
+    "63": "Yağmur",
+    "65": "Kuvvetli yağmur",
+    "66": "Dondurucu yağmur",
+    "67": "Kuvvetli dondurucu yağmur",
+    "71": "Hafif kar",
+    "73": "Kar",
+    "75": "Yoğun kar",
+    "77": "Kar tanecikleri",
+    "80": "Sağanak yağış",
+    "81": "Kuvvetli sağanak",
+    "82": "Şiddetli sağanak",
+    "85": "Kar sağanağı",
+    "86": "Kuvvetli kar sağanağı",
+    "95": "Gök gürültülü fırtına",
+    "96": "Dolulu fırtına",
+    "99": "Şiddetli dolulu fırtına",
+    "default": "Değişken"
+  }
+}

@@ -12,7 +12,7 @@ Complete step-by-step guide for deploying the secure messenger on a VPS that has
 | Public IP | `<YOUR_VPS_IP>` |
 | App domain | `<YOUR_APP_DOMAIN>` |
 | TURN domain | `<YOUR_TURN_DOMAIN>` |
-| SSH key | `~/.ssh/black_sea_key` |
+| SSH key | `~/.ssh/your-key` |
 | TURN user | `<YOUR_TURN_USERNAME>` |
 | TURN password | `<YOUR_TURN_PASSWORD>` |
 
@@ -124,7 +124,7 @@ Replace `/etc/nginx/nginx.conf` with the following (or add the `stream {}` block
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
-error_log /var/log/nginx/error.log;
+error_log /var/log/nginx/error.log error;
 include /etc/nginx/modules-enabled/*.conf;
 
 events {
@@ -139,7 +139,8 @@ http {
     default_type application/octet_stream;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
-    access_log /var/log/nginx/access.log;
+    log_format messenger_minimal '$remote_addr [$time_local] "$request_method $uri" $status';
+    access_log /var/log/nginx/access.log messenger_minimal;
     gzip on;
     include /etc/nginx/conf.d/*.conf;
     include /etc/nginx/sites-enabled/*;
@@ -169,7 +170,7 @@ stream {
 }
 ```
 
-Create the site config at `/etc/nginx/sites-available/weather`:
+Create the site config at `/etc/nginx/sites-available/<YOUR_APP_DOMAIN>`:
 
 ```nginx
 server {
@@ -178,7 +179,7 @@ server {
 
     # For certbot HTTP-01 renewal
     location /.well-known/acme-challenge/ {
-        root /var/www/weather;
+        root /var/www/<YOUR_APP_DOMAIN>;
     }
 
     location / {
@@ -194,7 +195,7 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/<YOUR_APP_DOMAIN>/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
 
-    root /var/www/weather;
+    root /var/www/<YOUR_APP_DOMAIN>;
     index index.html;
 
     # WebSocket proxy for signaling
@@ -205,12 +206,14 @@ server {
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_read_timeout 3600s;
+        access_log off;
     }
 
     # API proxy
     location /api/ {
         proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
+        access_log off;
     }
 
     # SPA fallback
@@ -223,7 +226,7 @@ server {
 Enable and test:
 
 ```bash
-ln -sf /etc/nginx/sites-available/weather /etc/nginx/sites-enabled/weather
+ln -sf /etc/nginx/sites-available/<YOUR_APP_DOMAIN> /etc/nginx/sites-enabled/<YOUR_APP_DOMAIN>
 nginx -t
 systemctl enable nginx
 systemctl restart nginx
@@ -276,6 +279,7 @@ cli-password=your-cli-password-here
 
 cipher-list="HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4"
 log-file=/var/log/coturn/turnserver.log
+no-stdout-log
 ```
 
 ```bash
@@ -285,6 +289,65 @@ systemctl enable coturn
 systemctl restart coturn
 systemctl is-active coturn
 ```
+
+## Step 5A — Logging retention and verbosity hardening
+
+The default config above is functional, but not yet aligned with the browser-side cleanup work. Two additional changes are recommended:
+
+1. nginx should keep only minimal HTTP request logs and should not log hidden-functionality paths such as `/ws` and `/api/`.
+2. coturn should write only to its own logfile, not duplicate to stdout/journald, and that logfile should be rotated aggressively.
+
+### nginx logging audit result
+
+- Current risk without hardening: `/ws` and `/api/rooms/...` requests are recorded in nginx access logs and can retain room-related traffic traces.
+- Recommended state: keep a minimal access log for normal decoy web traffic, disable access logging for `/ws` and `/api/`, and keep only short retention.
+
+Install the logrotate policy from this repo:
+
+```bash
+install -m 0644 /path/to/repo/ops/logrotate/nginx-messenger /etc/logrotate.d/nginx
+logrotate -f /etc/logrotate.d/nginx
+```
+
+Do not install this as a second file alongside the distro-provided nginx policy for the same log paths. Replace the existing `/etc/logrotate.d/nginx` entry instead.
+
+### coturn logging audit result
+
+- Current risk without hardening: coturn keeps relay/session metadata in `/var/log/coturn/turnserver.log` indefinitely unless rotation is configured.
+- Recommended state: do not enable `verbose`, keep `no-stdout-log`, log only to the dedicated file, and rotate that file aggressively.
+
+Install the logrotate policy from this repo:
+
+```bash
+install -m 0644 /path/to/repo/ops/logrotate/coturn-messenger /etc/logrotate.d/coturn
+logrotate -f /etc/logrotate.d/coturn
+```
+
+If the OS already ships `/etc/logrotate.d/coturn`, replace it instead of creating a second rule for the same logfile.
+
+### Verify effective logging state
+
+```bash
+# nginx should not emit /ws or /api requests into access.log after reload
+nginx -t && systemctl reload nginx
+tail -n 20 /var/log/nginx/access.log
+
+# coturn should only write to its file and should not duplicate into journald
+systemctl restart coturn
+journalctl -u coturn -n 20
+tail -n 20 /var/log/coturn/turnserver.log
+
+# inspect the installed retention policies
+logrotate -d /etc/logrotate.d/nginx
+logrotate -d /etc/logrotate.d/coturn
+```
+
+Expected result:
+
+- nginx access logs retain only minimal decoy-site requests
+- `/ws` and `/api/` traffic is absent from nginx access logs
+- coturn writes only to `/var/log/coturn/turnserver.log`
+- both nginx and coturn logs are rotated daily and only the latest 3 rotations are retained
 
 ---
 
@@ -309,6 +372,8 @@ Browser A → coturn A relay (127.0.0.1:PORT_A) → <YOUR_VPS_IP>:PORT_B
 The loopback SNAT rule fixes this by rewriting the source to `<YOUR_VPS_IP>` before the packet reaches coturn B, so the permission check passes.
 
 On Oracle Cloud this is handled automatically by the hypervisor NAT. On a bare-metal/AlexHost VPS it must be done manually.
+
+> Scope note: the four NAT rules below are the documented fix for UDP relay hairpining on a directly-addressed VPS. If you force browsers onto `turns:443?transport=tcp` for restrictive networks, validate TCP relay and same-server hairpin behavior separately instead of assuming the UDP rules are sufficient.
 
 ### Apply the rules
 
@@ -414,21 +479,58 @@ bash local-deploy.sh
 4. Stop the backend, swap the binaries/files, start the backend, reload nginx
 5. Verify the backend health endpoint
 
+### Manual video assets
+
+The coastal hero videos under `frontend/public/media/optimized/` are intentionally not stored in Git to avoid bloating the repository. That means:
+
+1. GitHub Actions deploys will not have those files unless you upload them to the VM manually.
+2. The server must keep them under the frontend web root at `media/optimized/`.
+3. Both deployment paths intentionally remove `dist/media` before upload, so video assets are never transferred automatically.
+
+Upload them to the VPS after the initial deployment:
+
+```bash
+# Example for the GitHub Actions target path
+ssh <YOUR_USER>@<YOUR_HOST> 'mkdir -p /var/www/messenger/media/optimized'
+scp frontend/public/media/optimized/* <YOUR_USER>@<YOUR_HOST>:/var/www/messenger/media/optimized/
+```
+
+If you deploy with `local-deploy.sh`, use the configured `REMOTE_FRONTEND_PATH` instead of `/var/www/messenger` when choosing the remote upload path.
+
+Both deployment paths preserve the existing `media/` directory on the server, so manually uploaded video assets are not removed by later deploys.
+
 ### TURN credentials in the frontend
 
-The frontend reads three Vite env vars at build time:
+The frontend reads these Vite env vars at build time:
 
 | Variable | Default in `local-deploy.sh` |
 |---|---|
 | `VITE_TURN_SERVER` | `<YOUR_TURN_DOMAIN>` |
 | `VITE_TURN_USERNAME` | `<YOUR_TURN_USERNAME>` |
 | `VITE_TURN_PASSWORD` | `<YOUR_TURN_PASSWORD>` |
+| `VITE_TURN_FORCE_TLS_443` | unset / `false` |
+| `VITE_TURN_URLS` | unset |
 
 Override before running the script if needed:
 ```bash
 export VITE_TURN_SERVER=turn.example.com
 export VITE_TURN_USERNAME=myuser
 export VITE_TURN_PASSWORD=mypassword
+bash local-deploy.sh
+```
+
+For aggressive networks that block UDP and most non-443 egress, rebuild the frontend with only TURN over TLS on 443:
+
+```bash
+export VITE_TURN_FORCE_TLS_443=true
+unset VITE_TURN_URLS
+bash local-deploy.sh
+```
+
+If you need an explicit custom order or a single pinned endpoint, set `VITE_TURN_URLS` as a comma-separated list instead. Example:
+
+```bash
+export VITE_TURN_URLS='turns:turn.example.com:443?transport=tcp'
 bash local-deploy.sh
 ```
 

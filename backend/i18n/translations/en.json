@@ -1,0 +1,327 @@
+{
+  "app": {
+    "title": "Black Sea Weather"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ru": "Русский",
+    "tr": "Türkçe"
+  },
+  "weather": {
+    "kicker": "Black Sea Weather",
+    "heroTitle": "Sea weather, wind, and daily conditions.",
+    "heroDescription": "Forecasts for ports, beaches, marinas, and coastal trips around the Black Sea.",
+    "searchLabel": "Search station",
+    "searchPlaceholder": "Try Sochi, Varna, Batumi, Sinop...",
+    "noStationMatchTitle": "No match found",
+    "noStationMatchBody": "Try a different city or search by country.",
+    "selectedStation": "Selected station",
+    "currentConditions": "Right now",
+    "updatedFeed": "Updated from weather feeds.",
+    "issuedAt": "Updated {{time}} {{timezone}}",
+    "loading": "Loading forecast...",
+    "errors": {
+      "forecastUnavailable": "Can't load forecast right now.",
+      "invalidResponse": "Got a bad response from the weather service.",
+      "loadFailed": "Couldn't load weather data."
+    },
+    "metrics": {
+      "air": "Air",
+      "sea": "Sea",
+      "wind": "Wind",
+      "conditions": "Conditions",
+      "feelsLike": "Feels like",
+      "humidity": "Humidity",
+      "waveHeight": "Wave height",
+      "wavePeriod": "Wave period",
+      "waveDirection": "Wave direction"
+    },
+    "sevenDayTitle": "7-day forecast",
+    "sunrise": "Sunrise {{time}}",
+    "sunset": "Sunset {{time}}",
+    "hourlyKicker": "Hour by hour",
+    "hourlyTitle": "Wind and waves",
+    "hourlyEmpty": "Hourly conditions will show here.",
+    "regionalNote": "Tip",
+    "regionalNoteTitle": "Planning your trip",
+    "regionalNoteBody": "Watch wind, waves, and rain together. Calm mornings can turn rough fast when afternoon winds pick up.",
+    "stationSummary": "Weather for Black Sea ports, beaches, marinas, and coastal trips.",
+    "dataSource": "Data from Open-Meteo weather service for the selected station.",
+    "rainChance": "Rain {{value}}%",
+    "windSpeed": "Wind {{value}} km/h",
+    "info": {
+      "buttonLabel": "How to use this page",
+      "kicker": "Quick guide",
+      "title": "How it works",
+      "description": "Search for a station or pick one below to see its forecast. You can search by city or country.",
+      "exampleLabel": "Quick start",
+      "example": "Type a city like Varna or Batumi, or tap a station to see its forecast.",
+      "stationsTitle": "Available stations",
+      "close": "Close"
+    },
+    "locations": {
+      "odessa": {
+        "name": "Odesa",
+        "country": "Ukraine"
+      },
+      "chornomorsk": {
+        "name": "Chornomorsk",
+        "country": "Ukraine"
+      },
+      "yuzhne": {
+        "name": "Yuzhne",
+        "country": "Ukraine"
+      },
+      "skadovsk": {
+        "name": "Skadovsk",
+        "country": "Ukraine"
+      },
+      "sulina": {
+        "name": "Sulina",
+        "country": "Romania"
+      },
+      "constanta": {
+        "name": "Constanta",
+        "country": "Romania"
+      },
+      "mangalia": {
+        "name": "Mangalia",
+        "country": "Romania"
+      },
+      "balchik": {
+        "name": "Balchik",
+        "country": "Bulgaria"
+      },
+      "varna": {
+        "name": "Varna",
+        "country": "Bulgaria"
+      },
+      "nessebar": {
+        "name": "Nessebar",
+        "country": "Bulgaria"
+      },
+      "burgas": {
+        "name": "Burgas",
+        "country": "Bulgaria"
+      },
+      "sozopol": {
+        "name": "Sozopol",
+        "country": "Bulgaria"
+      },
+      "tsarevo": {
+        "name": "Tsarevo",
+        "country": "Bulgaria"
+      },
+      "igneada": {
+        "name": "Igneada",
+        "country": "Turkey"
+      },
+      "sile": {
+        "name": "Sile",
+        "country": "Turkey"
+      },
+      "zonguldak": {
+        "name": "Zonguldak",
+        "country": "Turkey"
+      },
+      "amasra": {
+        "name": "Amasra",
+        "country": "Turkey"
+      },
+      "sinop": {
+        "name": "Sinop",
+        "country": "Turkey"
+      },
+      "samsun": {
+        "name": "Samsun",
+        "country": "Turkey"
+      },
+      "ordu": {
+        "name": "Ordu",
+        "country": "Turkey"
+      },
+      "giresun": {
+        "name": "Giresun",
+        "country": "Turkey"
+      },
+      "trabzon": {
+        "name": "Trabzon",
+        "country": "Turkey"
+      },
+      "rize": {
+        "name": "Rize",
+        "country": "Turkey"
+      },
+      "hopa": {
+        "name": "Hopa",
+        "country": "Turkey"
+      },
+      "batumi": {
+        "name": "Batumi",
+        "country": "Georgia"
+      },
+      "kobuleti": {
+        "name": "Kobuleti",
+        "country": "Georgia"
+      },
+      "poti": {
+        "name": "Poti",
+        "country": "Georgia"
+      },
+      "sochi": {
+        "name": "Sochi",
+        "country": "Russia"
+      },
+      "tuapse": {
+        "name": "Tuapse",
+        "country": "Russia"
+      },
+      "gelendzhik": {
+        "name": "Gelendzhik",
+        "country": "Russia"
+      },
+      "novorossiysk": {
+        "name": "Novorossiysk",
+        "country": "Russia"
+      },
+      "anapa": {
+        "name": "Anapa",
+        "country": "Russia"
+      }
+    }
+  },
+  "gate": {
+    "heading": "",
+    "status": {
+      "roomEmpty": "Room is empty",
+      "peerWaiting": "Peer is waiting for you",
+      "checking": "Checking room..."
+    },
+    "callMode": "Call mode",
+    "audioOnly": "Audio only",
+    "video": "Video",
+    "modeLocked": "First participant set mode to {{mode}}.",
+    "lockedMode": {
+      "audio": "audio only",
+      "video": "video"
+    },
+    "openDoor": "Open door",
+    "returnToForecast": "Cancel",
+    "bulletin": {
+      "kicker": "Leave a note",
+      "heading": "Leave a comment",
+      "description": "",
+      "storeTitle": "Leave message",
+      "readTitle": "Read message",
+      "emojiLabels": {
+        "store": "Leave message",
+        "read": "Read message"
+      },
+      "placeholders": {
+        "storeCode": "",
+        "readCode": "",
+        "text": "How lovely the sea is in summer!"
+      },
+      "textLimit": "Up to {{count}} characters.",
+      "actions": {
+        "save": "Save",
+        "read": "Read",
+        "cancel": "Cancel",
+        "close": "Close",
+        "showCode": "Show",
+        "hideCode": "Hide"
+      },
+      "feedback": {
+        "storeSuccess": "Message saved. Any old message with this code was replaced.",
+        "invalidInput": "Check your code, date, time, and message.",
+        "storeError": "Couldn't save message.",
+        "readBlocked": "Can't read right after saving from the same session.",
+        "readMiss": "No message found for this code.",
+        "readError": "Couldn't open message.",
+        "readSuccess": "Message received and deleted from server."
+      },
+      "retrievedTitle": "Retrieved advisory",
+      "retrievedHint": "This advisory was removed after retrieval."
+    }
+  },
+  "call": {
+    "verification": {
+      "kicker": "Peer verification",
+      "heading": {
+        "trusted": "Peer code verified",
+        "changed": "Peer code changed",
+        "waiting": "Waiting for peer code",
+        "unverified": "Verify peer code"
+      },
+      "description": {
+        "trusted": "Saved fingerprint matches. Re-verify if anything changed.",
+        "changed": "Saved fingerprint doesn't match! Don't trust this session until you verify and update.",
+        "waiting": "Call is connecting. Code will show once ready.",
+        "unverified": "Compare your code with the other person's code, then mark as verified."
+      },
+      "storedAt": "Stored {{time}}",
+      "yourCode": "Your short code",
+      "peerCode": "Peer short code",
+      "previousCode": "Previously trusted code",
+      "waitingCode": "Waiting for code...",
+      "actions": {
+        "trustNew": "Trust new fingerprint",
+        "markVerified": "Mark verified",
+        "clearSavedTrust": "Clear saved trust",
+        "openPanel": "View codes",
+        "closePanel": "Close verification"
+      }
+    },
+    "status": {
+      "connectionLabel": "Connection status",
+      "establishing": "Establishing connection...",
+      "peerMuted": "Peer muted",
+      "peerVideoOff": "Peer video off",
+      "state": {
+        "new": "new",
+        "connecting": "connecting",
+        "connected": "connected",
+        "disconnected": "disconnected",
+        "failed": "failed",
+        "closed": "closed"
+      }
+    },
+    "controls": {
+      "toggleAudio": "Toggle audio",
+      "toggleVideo": "Toggle video",
+      "endCall": "End call"
+    }
+  },
+  "weatherCodes": {
+    "0": "Clear",
+    "1": "Mostly clear",
+    "2": "Partly cloudy",
+    "3": "Overcast",
+    "45": "Fog",
+    "48": "Rime fog",
+    "51": "Light drizzle",
+    "53": "Drizzle",
+    "55": "Dense drizzle",
+    "56": "Freezing drizzle",
+    "57": "Heavy freezing drizzle",
+    "61": "Light rain",
+    "63": "Rain",
+    "65": "Heavy rain",
+    "66": "Freezing rain",
+    "67": "Heavy freezing rain",
+    "71": "Light snow",
+    "73": "Snow",
+    "75": "Heavy snow",
+    "77": "Snow grains",
+    "80": "Rain showers",
+    "81": "Heavy showers",
+    "82": "Violent showers",
+    "85": "Snow showers",
+    "86": "Heavy snow showers",
+    "95": "Thunderstorm",
+    "96": "Storm with hail",
+    "99": "Severe storm with hail",
+    "default": "Changeable"
+  }
+}
